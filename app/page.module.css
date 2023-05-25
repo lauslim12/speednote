@@ -1,0 +1,66 @@
+.header {
+  display: flex;
+  justify-content: flex-end;
+  padding: 1rem;
+}
+
+.main {
+  padding: 2rem 5rem 2rem 5rem;
+  flex: 1;
+
+  /* To make the loader to the center of the screen. */
+  display: flex;
+  flex-direction: column;
+}
+
+.loader {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+}
+
+.footer {
+  display: flex;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.externalLink {
+  color: inherit;
+  text-decoration: none;
+}
+
+.thanks {
+  font-size: 12px;
+  text-align: center;
+  color: var(--thanks);
+}
+
+/* 1100px */
+@media only screen and (max-width: 69.75em) {
+  .main {
+    padding: 1.5rem 4rem 1.5rem 4rem;
+  }
+}
+
+/* 900px */
+@media only screen and (max-width: 56.25em) {
+  .main {
+    padding: 1rem 3rem 1rem 3rem;
+  }
+}
+
+/* 600px */
+@media only screen and (max-width: 37.5em) {
+  .main {
+    padding: 0.5rem 1.5rem 0.5rem 1.5rem;
+  }
+}
+
+/* 500px */
+@media only screen and (max-width: 31.25em) {
+  .main {
+    padding: 0rem 0.5rem 0rem 0.5rem;
+  }
+}

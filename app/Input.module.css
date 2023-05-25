@@ -1,0 +1,36 @@
+.base {
+  all: unset;
+  width: 100%;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+  overflow: hidden;
+}
+
+.title {
+  font-weight: 900;
+  font-size: 2.4rem;
+  line-height: 3rem;
+}
+
+.content {
+  font-size: 1.2rem;
+  line-height: 2rem;
+}
+
+/* 900px */
+@media only screen and (max-width: 56.25em) {
+  .title {
+    font-size: 1.6rem;
+  }
+}
+
+/* 600px */
+@media only screen and (max-width: 37.5em) {
+  .content {
+    font-size: 1.6rem;
+  }
+
+  .content {
+    font-size: 1rem;
+  }
+}
