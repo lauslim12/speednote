@@ -16,6 +16,7 @@ const displayReadableTime = (timestamp: string) => {
     return '';
   }
 
+  // Falls back to the browser's settings.
   const parsedTimestamp = new Date(Number.parseInt(timestamp, 10));
   return Intl.DateTimeFormat(undefined, {
     dateStyle: 'full',
@@ -36,7 +37,6 @@ const Editor = () => {
   const [title, setTitle] = useState(notes.title);
   const [content, setContent] = useState(notes.content);
   const [lastUpdated, setLastUpdated] = useState(notes.lastUpdated);
-  const [isAutosaving, setIsAutosaving] = useState(false);
 
   const debouncedChangeTitle = useDebounce(() => storeTitle(title));
   const debouncedChangeContent = useDebounce(() => storeContent(content));
@@ -78,7 +78,6 @@ const Editor = () => {
           placeholder="Enter a title"
           value={title}
           onChange={({ currentTarget: { value } }) => {
-            setIsAutosaving(true);
             setTitle(value);
             setLastUpdated(Date.now().toString());
             debouncedChangeTitle();
@@ -94,7 +93,6 @@ const Editor = () => {
           placeholder="Start writing, your progress will be automatically stored in your machine's local storage"
           value={content}
           onChange={({ currentTarget: { value } }) => {
-            setIsAutosaving(true);
             setContent(value);
             setLastUpdated(Date.now().toString());
             debouncedChangeContent();
