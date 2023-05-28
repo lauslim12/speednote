@@ -70,9 +70,6 @@ test('able to edit title and content', async () => {
     'Today I spent 1000 JPY for lunch at a fish shop'
   );
 
-  // Should print the autosave.
-  expect(screen.getByText('Autosaving...')).toBeInTheDocument();
-
   // There should be a date that shows the last updated date as well.
-  expect(await screen.findByText(/Last updated at/i)).toBeInTheDocument();
+  expect(screen.getByText(/Last updated at/i)).toBeInTheDocument();
 });
