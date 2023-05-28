@@ -67,12 +67,6 @@ const Editor = () => {
       debouncedChangeLastUpdated.flush();
     };
 
-    const clearDebounces = () => {
-      debouncedChangeTitle.cancel();
-      debouncedChangeContent.cancel();
-      debouncedChangeLastUpdated.cancel();
-    };
-
     const unsavedHandler = (e: BeforeUnloadEvent) => {
       // Immediately invoke the debounces to make sure all of the contents are saved, and then
       // print the message to the user.
@@ -86,15 +80,13 @@ const Editor = () => {
     // are still saving, send back an unsaved confirmation.
     if (isAutosaving) {
       window.addEventListener('beforeunload', unsavedHandler);
-
-      return () => {
-        clearDebounces();
-        window.removeEventListener('beforeunload', unsavedHandler);
-      };
+      return () => window.removeEventListener('beforeunload', unsavedHandler);
     }
 
-    // Make sure to cancel and clean the debounces when the component unmounts.
-    return () => clearDebounces();
+    // Make sure to invoke the debounces when the component unmounts. This makes sense
+    // because writing to `localStorage` is a synchronous operation, so this is better
+    // than cancelling the debounces.
+    return () => invokeDebounces();
   }, [
     debouncedChangeTitle,
     debouncedChangeContent,
