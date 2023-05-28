@@ -7,7 +7,7 @@ import type { ReactNode } from 'react';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'Speednote',
+  title: 'Speednote — Quickly input your thoughts',
   description:
     'Speednote, as its name suggests, is an optimized PWA to quickly type notes as fast as possible. Put your thoughts here before you move them to another storage!',
   metadataBase: new URL('https://speednote.vercel.app'),
