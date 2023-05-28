@@ -37,12 +37,33 @@ const Editor = () => {
   const [title, setTitle] = useState(notes.title);
   const [content, setContent] = useState(notes.content);
   const [lastUpdated, setLastUpdated] = useState(notes.lastUpdated);
+  const [lastChanges, setLastChanges] = useState('');
 
   const debouncedChangeTitle = useDebounce(() => storeTitle(title));
   const debouncedChangeContent = useDebounce(() => storeContent(content));
   const debouncedChangeLastUpdated = useDebounce(() =>
     storeLastUpdated(lastUpdated)
   );
+
+  const handleButtonClick = (type: 'clear' | 'undo') => () => {
+    // Cancel all pending debounces.
+    debouncedChangeContent.cancel();
+    debouncedChangeLastUpdated.cancel();
+
+    // Store changes now without debouncing.
+    if (type === 'undo') {
+      setLastChanges('');
+      setContent(lastChanges);
+    } else {
+      setLastChanges(content);
+      setContent('');
+    }
+    setLastUpdated(Date.now().toString());
+
+    // Sync with store
+    storeLastUpdated(Date.now().toString());
+    storeContent(lastChanges);
+  };
 
   useEffect(() => {
     const invokeDebounces = () => {
@@ -102,15 +123,15 @@ const Editor = () => {
       </section>
 
       <section className={styles.section}>
-        <button
-          className={styles.button}
-          onClick={() => {
-            setContent('');
-            storeContent('');
-          }}
-        >
+        <button className={styles.button} onClick={handleButtonClick('clear')}>
           Clear content
         </button>
+
+        {lastChanges && (
+          <button className={styles.button} onClick={handleButtonClick('undo')}>
+            Undo clear
+          </button>
+        )}
       </section>
     </>
   );
