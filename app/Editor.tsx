@@ -100,6 +100,18 @@ const Editor = () => {
           }}
         />
       </section>
+
+      <section className={styles.section}>
+        <button
+          className={styles.button}
+          onClick={() => {
+            setContent('');
+            storeContent('');
+          }}
+        >
+          Clear content
+        </button>
+      </section>
     </>
   );
 };
