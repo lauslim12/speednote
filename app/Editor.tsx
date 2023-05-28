@@ -12,10 +12,6 @@ const isValidTimestamp = (timestamp: string) => {
 };
 
 const displayReadableTime = (timestamp: string) => {
-  if (!isValidTimestamp(timestamp)) {
-    return '';
-  }
-
   // Falls back to the browser's settings.
   const parsedTimestamp = new Date(Number.parseInt(timestamp, 10));
   return Intl.DateTimeFormat(undefined, {
