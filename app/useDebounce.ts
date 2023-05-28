@@ -1,7 +1,7 @@
 import { useDebouncedCallback } from 'use-debounce';
 
 // Debounce delay in milliseconds.
-const DEBOUNCE_DELAY = 500;
+const DEBOUNCE_DELAY = 100;
 
 /**
  * A special React Hook to debounce an event. This will persist through re-renders and will

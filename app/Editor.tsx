@@ -58,7 +58,7 @@ const Editor = () => {
     }
 
     setIsAutosaving(false);
-  }, 500);
+  }, 300);
 
   useEffect(() => {
     const invokeDebounces = () => {
