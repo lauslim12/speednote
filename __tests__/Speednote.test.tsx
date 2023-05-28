@@ -96,3 +96,23 @@ test('able to edit title and content', async () => {
   // There should be a date that shows the last updated date as well.
   expect(screen.getByText(/Last updated at/i)).toBeInTheDocument();
 });
+
+test('able to clear content and undo clear', async () => {
+  const { user } = renderWithProviders();
+
+  const { content, clearContentButton } = assertEditor();
+  await user.type(content, "Tears Don't Fall, Enchanted, Beautiful Trauma");
+  expect(content).not.toHaveValue('');
+  expect(content).toHaveValue("Tears Don't Fall, Enchanted, Beautiful Trauma");
+
+  expect(clearContentButton).toBeEnabled();
+  await user.click(clearContentButton);
+  expect(content).toHaveValue('');
+
+  // Query the `undoClearButton` again here.
+  const undoClearButton = screen.getByRole('button', { name: 'Undo clear' });
+  expect(undoClearButton).toBeInTheDocument();
+  expect(undoClearButton).toBeEnabled();
+  await user.click(undoClearButton);
+  expect(content).toHaveValue("Tears Don't Fall, Enchanted, Beautiful Trauma");
+});
