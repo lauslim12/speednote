@@ -7,3 +7,29 @@
   font-weight: 600;
   color: var(--time);
 }
+
+.button {
+  border: none;
+  color: var(--thanks);
+  font-size: inherit;
+  border-bottom: 1px solid currentColor;
+  padding-bottom: 2px;
+  display: inline-block;
+  background-color: transparent;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.button:hover {
+  color: var(--time);
+}
+
+.button:focus {
+  outline: none;
+  transform: scale(1.05);
+  box-shadow: 0 1rem 4rem rgba(0, 0, 0, 0.25);
+}
+
+.button:last-of-type:not(:first-of-type) {
+  margin-left: 0.5rem;
+}

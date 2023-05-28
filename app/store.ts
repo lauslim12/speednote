@@ -28,10 +28,6 @@ const dataStore = {
   getLastUpdated: () => {
     return localStorage.getItem(storageKey.LAST_UPDATED_STORAGE_KEY);
   },
-
-  clear: () => {
-    return localStorage.clear();
-  },
 };
 
 /**
