@@ -5,7 +5,6 @@ import { memo, useEffect, useState } from 'react';
 import styles from './Editor.module.css';
 import Input from './Input';
 import { getNotes, storeContent, storeLastUpdated, storeTitle } from './store';
-import useAutosave from './useAutosave';
 import useDebounce from './useDebounce';
 
 const isValidTimestamp = (timestamp: string) => {
@@ -45,43 +44,12 @@ const Editor = () => {
     storeLastUpdated(lastUpdated)
   );
 
-  useAutosave(() => {
-    const isSaving = [
-      debouncedChangeTitle.isPending(),
-      debouncedChangeContent.isPending(),
-      debouncedChangeLastUpdated.isPending(),
-    ].some((stillSaving) => stillSaving === true);
-
-    if (isSaving) {
-      setIsAutosaving(true);
-      return;
-    }
-
-    setIsAutosaving(false);
-  }, 300);
-
   useEffect(() => {
     const invokeDebounces = () => {
       debouncedChangeTitle.flush();
       debouncedChangeContent.flush();
       debouncedChangeLastUpdated.flush();
     };
-
-    const unsavedHandler = (e: BeforeUnloadEvent) => {
-      // Immediately invoke the debounces to make sure all of the contents are saved, and then
-      // print the message to the user.
-      invokeDebounces();
-
-      e.preventDefault();
-      e.returnValue = '';
-    };
-
-    // Not the perfect logic, but when the user tries to close the app while the debounces
-    // are still saving, send back an unsaved confirmation.
-    if (isAutosaving) {
-      window.addEventListener('beforeunload', unsavedHandler);
-      return () => window.removeEventListener('beforeunload', unsavedHandler);
-    }
 
     // Make sure to invoke the debounces when the component unmounts. This makes sense
     // because writing to `localStorage` is a synchronous operation, so this is better
@@ -91,15 +59,12 @@ const Editor = () => {
     debouncedChangeTitle,
     debouncedChangeContent,
     debouncedChangeLastUpdated,
-    isAutosaving,
   ]);
 
   return (
     <>
       <section className={styles.section}>
-        {isAutosaving ? (
-          <p className={styles.time}>Autosaving...</p>
-        ) : lastUpdated && isValidTimestamp(lastUpdated) ? (
+        {lastUpdated && isValidTimestamp(lastUpdated) ? (
           <time className={styles.time}>
             Last updated at {displayReadableTime(lastUpdated)}
           </time>
