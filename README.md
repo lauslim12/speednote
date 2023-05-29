@@ -12,14 +12,14 @@ Honestly, the slowness and the overload of features is starting to get the bette
 
 The concept of this application is just a single note with a title that you could use according to your use-case. You will type whatever you need / have been thinking about in that single note, and you **should move it to other note applications when you have the chance to do so**. This application should only be used for writing a general idea of something on the spot so that you do not forget it.
 
-All of the states / data that are inside of the application is **intentionally designed to be stored as strings**, this is to make sure that everything is on the best performance because assigning values to an object tends to be an expensive operation. The data store that is used by the application is also using the [fastest possible data store that could persist values](https://stackoverflow.com/a/56848541/13980107) across browser refreshes. However, despite its speed, it should be kept in mind that this application **is not supposed to and should not be used for long-term note saving**. It is also recommended to not exceed the browser's `localStorage` size (making notes that are too long). You could test the maximum size of your browser's `localStorage` from [this website](https://arty.name/localstorage.html).
+All of the states / data that are inside of the application is **intentionally designed to be stored as strings**, this is to make sure that everything is on the best performance because assigning values to an object tends to be an expensive operation. The data store that is used by the application is also using the [fastest possible data store that could persist values](https://stackoverflow.com/a/56848541/13980107) across browser refreshes. The saving is done by implementing autosaves with debounce to make sure that it does not overload the browser. However, despite its speed, it should be kept in mind that this application **is not supposed to and should not be used for long-term note saving**. It is also recommended to not exceed the browser's `localStorage` size (making notes that are too long). You could test the maximum size of your browser's `localStorage` from [this website](https://arty.name/localstorage.html).
 
 ## Features
 
 - Blazingly fast. When you open the app, you can instantly type after the editor is mounted.
 - Utilization of Server Components and Client Components for maximum performance.
-- Configurable theme, it will respect the system's theme, but you can always change it.
-- There is an autosave function with debounce, so you don't have to worry about lag and data loss (stored in `localStorage`).
+- Configurable theme, it will respect the system's theme initially, but you can always change it.
+- Complete with autosave function with reasonable debounce, so you don't have to worry about performance hits, lag, and data loss (stored in `localStorage`).
 - The storage that is used, `localStorage`, is [known to be one of the fastest storage system](https://stackoverflow.com/a/46779140/13980107) and [can save in less than a millisecond](https://gomakethings.com/how-fast-is-vanilla-js-localstorage/).
 - Lightweight. I intentionally did not use any heavy UI-frameworks and decided to just use a normal CSS, augmented with SCSS to make it featherweight.
 - Responsive to make sure that this application could be used in various environments without losing UX.
@@ -40,6 +40,13 @@ All of the states / data that are inside of the application is **intentionally d
 | Standard Notes |      45 MB       |           No           | Web, Mobile (Standalone and PWA available) |                        Unlimited                        |    Encrpyted, supports rich-text editing (includes Markdown), customizable themes, unique search, smart views, doubles as Authenticator + blogging platform     |
 
 Note that the comparison was made on **29 May 2023**.
+
+## Tech Stack
+
+- [React 18](https://react.dev/) with [Next.js 13](https://nextjs.org/) as the web framework
+- [SCSS](https://sass-lang.com/) for the CSS preprocessor
+- [GitHub Actions](https://github.com/features/actions) as the CI/CD part of the application
+- [Vercel](https://vercel.com/) as the deployment platform
 
 ## Requirements
 
@@ -70,7 +77,7 @@ There are no dependencies (environment variables or the like), this is a standal
 
 ## Contributions
 
-Have a question? Discovered a problem? Feel free to open an issue or a pull request, they are always welcome!
+Have a question? Discovered a problem? Wanted to contribute to this project? Feel free to open an issue or a pull request, they are always welcome!
 
 ## Credits
 

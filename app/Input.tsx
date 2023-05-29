@@ -10,13 +10,11 @@ import styles from './Input.module.scss';
 //
 // We should use `ComponentPropsWithoutRef` to be explicit.
 // Reference: https://react-typescript-cheatsheet.netlify.app/docs/advanced/patterns_by_usecase/#definitely-not-reacthtmlprops-or-reacthtmlattributes
-type BaseTextareaProps = Omit<ComponentPropsWithoutRef<'textarea'>, 'style'>;
-
-interface InputProps extends BaseTextareaProps {
+type InputProps = {
   type: 'title' | 'content';
   value: string;
   onChange: (e: ChangeEvent<HTMLTextAreaElement>) => void;
-}
+} & Omit<ComponentPropsWithoutRef<'textarea'>, 'style' | 'value' | 'onChange'>;
 
 const Input = ({ type, value, onChange, ...rest }: InputProps) => {
   const style = [
