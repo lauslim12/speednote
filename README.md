@@ -68,6 +68,10 @@ yarn start
 
 There are no dependencies (environment variables or the like), this is a standalone project.
 
+## Contributions
+
+Have a question? Discovered a problem? Feel free to open an issue or a pull request, they are always welcome!
+
 ## Credits
 
 - [Flaticon](https://www.flaticon.com/free-icons/sticky-notes) for the PWA icons and favicon.
