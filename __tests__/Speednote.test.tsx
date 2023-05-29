@@ -8,6 +8,22 @@ import userEvent from '@testing-library/user-event';
 
 import Home from '@/app/page';
 
+// Have to mock `matchMedia` because it's not supported in Jest yet.
+// Reference: https://jestjs.io/docs/manual-mocks#mocking-methods-which-are-not-implemented-in-jsdom.
+Object.defineProperty(window, 'matchMedia', {
+  writable: true,
+  value: jest.fn().mockImplementation((query) => ({
+    matches: false,
+    media: query,
+    onchange: null,
+    addListener: jest.fn(), // deprecated
+    removeListener: jest.fn(), // deprecated
+    addEventListener: jest.fn(),
+    removeEventListener: jest.fn(),
+    dispatchEvent: jest.fn(),
+  })),
+});
+
 /**
  * This `beforeEach` hook is necessary to prevent unexpected values on tests. `localStorage`
  * can persist through tests!
@@ -58,6 +74,17 @@ const assertEditor = () => {
   return { title, content, clearContentButton };
 };
 
+const assertConfiguration = () => {
+  const [colorModeSwitchButton] = [
+    screen.getByRole('button', { name: 'Color mode switch' }),
+  ];
+
+  expect(colorModeSwitchButton).toBeInTheDocument();
+  expect(colorModeSwitchButton).toBeEnabled();
+
+  return { colorModeSwitchButton };
+};
+
 const renderWithProviders = () => {
   const user = userEvent.setup();
 
@@ -72,8 +99,9 @@ test('renders properly', () => {
 
   // Presumption of why we don't have the await for progressbar here: We don't need to wait
   // for the editor to load as it has already been loaded and cached (dynamic import occurs before we
-  // render the `Home` component). Just assert the editor to make sure that it's correct.
+  // render the `Home` component). Just assert the components to make sure that everything's correct.
   assertEditor();
+  assertConfiguration();
 
   // Sanity checks for markups, check footer and header.
   expect(screen.getByText('About')).toBeInTheDocument();
@@ -130,4 +158,17 @@ test('able to clear content and undo clear', async () => {
   expect(undoClearButton).toBeEnabled();
   await user.click(undoClearButton);
   expect(content).toHaveValue("Tears Don't Fall, Enchanted, Beautiful Trauma");
+});
+
+test('able to switch color mode', async () => {
+  const { user } = renderWithProviders();
+
+  const { colorModeSwitchButton } = assertConfiguration();
+  expect(colorModeSwitchButton).toHaveTextContent('Darken');
+  await user.click(colorModeSwitchButton);
+
+  expect(colorModeSwitchButton).toHaveTextContent('Lighten');
+  await user.click(colorModeSwitchButton);
+
+  expect(colorModeSwitchButton).toHaveTextContent('Darken');
 });
