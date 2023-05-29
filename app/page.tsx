@@ -22,6 +22,8 @@ const Editor = dynamic(() => import('./Editor'), {
   ),
 });
 
+const Configuration = dynamic(() => import('./Configuration'), { ssr: false });
+
 /**
  * Home component, the main page.
  *
@@ -31,6 +33,8 @@ const Home = () => {
   return (
     <>
       <header className={styles.header}>
+        <Configuration />
+
         <a
           href="https://github.com/lauslim12/speednote"
           target="_blank"
