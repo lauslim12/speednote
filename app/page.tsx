@@ -23,7 +23,7 @@ const Editor = dynamic(() => import('./Editor'), {
   ),
 });
 
-// Same treatment as above.
+// Same treatment as above, because we're using the `window` object, we cannot rely on SSR.
 const Configuration = dynamic(() => import('./Configuration'), { ssr: false });
 
 /**
