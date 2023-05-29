@@ -2,7 +2,7 @@
 
 import { memo, useEffect, useState } from 'react';
 
-import styles from './Editor.module.css';
+import styles from './Editor.module.scss';
 import Input from './Input';
 import { getNotes, storeContent, storeLastUpdated, storeTitle } from './store';
 import useDebounce from './useDebounce';

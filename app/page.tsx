@@ -1,6 +1,6 @@
 import dynamic from 'next/dynamic';
 
-import styles from './page.module.css';
+import styles from './page.module.scss';
 
 // Lazy-load the note editor to make sure that it is not server-side rendered, because
 // we need the `localStorage` to work, so it has to be purely a client component. In Next.js 13,

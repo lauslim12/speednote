@@ -2,7 +2,7 @@
 
 import { memo, useState } from 'react';
 
-import styles from './Configuration.module.css';
+import styles from './Configuration.module.scss';
 
 const Configuration = () => {
   const [isDark, setIsDark] = useState(

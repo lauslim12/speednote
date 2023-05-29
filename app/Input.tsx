@@ -4,7 +4,7 @@ import type { ChangeEvent, ComponentPropsWithoutRef } from 'react';
 import { memo } from 'react';
 import TextareaAutosize from 'react-textarea-autosize';
 
-import styles from './Input.module.css';
+import styles from './Input.module.scss';
 
 // We want all of the base `textarea` props with the exception of `style` because we do not want to override the base style.
 //
