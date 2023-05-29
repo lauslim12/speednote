@@ -1,4 +1,5 @@
 import {
+  cleanup,
   render,
   screen,
   waitForElementToBeRemoved,
@@ -7,9 +8,32 @@ import userEvent from '@testing-library/user-event';
 
 import Home from '@/app/page';
 
-beforeEach(() => {
-  // Prevent unexpected values on tests. `localStorage` can persist through tests!
-  window.localStorage.clear();
+/**
+ * This `beforeEach` hook is necessary to prevent unexpected values on tests. `localStorage`
+ * can persist through tests!
+ */
+beforeEach(() => window.localStorage.clear());
+
+/**
+ * This hook is necessary because we used a dynamic import for the `Editor` in `Home` component. We have
+ * to firstly initialize the dynamic import before doing anything else to make sure we have
+ * a clean and deterministic testing environment. For the subsequent tests, we don't have to
+ * wait for the dynamic import because it's already cached and it can be used immediately in
+ * subsequent tests.
+ */
+beforeAll(async () => {
+  // Initializes the dynamic import before doing anything else. This is required!
+  renderWithProviders();
+
+  // Wait for the editor to load or else it'll cause an `act` warning due
+  // to the dynamic import not loading the editor yet.
+  expect(
+    screen.getByText('Setting up the your note editor in a flash...')
+  ).toBeInTheDocument();
+  await waitForElementToBeRemoved(screen.queryByRole('progressbar'));
+
+  // Teardown the component because we want to setup a deterministic, clean environment.
+  cleanup();
 });
 
 const assertEditor = () => {
@@ -43,17 +67,12 @@ const renderWithProviders = () => {
   };
 };
 
-test('renders properly', async () => {
+test('renders properly', () => {
   renderWithProviders();
 
-  // Wait for the editor to load or else it'll cause an `act` warning due
-  // to the dynamic import not loading the editor yet.
-  expect(
-    screen.getByText('Setting up the your note editor in a flash...')
-  ).toBeInTheDocument();
-  await waitForElementToBeRemoved(screen.queryByRole('progressbar'));
-
-  // Assert the editor.
+  // Presumption of why we don't have the await for progressbar here: We don't need to wait
+  // for the editor to load as it has already been loaded and cached (dynamic import occurs before we
+  // render the `Home` component). Just assert the editor to make sure that it's correct.
   assertEditor();
 
   // Sanity checks for markups, check footer and header.
@@ -76,10 +95,6 @@ test('renders properly', async () => {
 
 test('able to edit title and content', async () => {
   const { user } = renderWithProviders();
-
-  // Presumption of why we don't have the await for progressbar here: We don't need to wait
-  // for the editor to load as it has already been loaded and cached (dynamic import occurs before we
-  // render the `Home` component).
   const { title, content } = assertEditor();
 
   // Type at both inputs, make sure that both have changes.

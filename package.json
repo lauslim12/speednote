@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "clean": "rm -rf .next .swc .vercel node_modules tsconfig.tsbuildinfo",
+    "clean": "rm -rf .next .swc .vercel coverage node_modules tsconfig.tsbuildinfo",
     "test": "jest --watchAll --verbose",
     "format-check": "prettier --check ./**/*.{ts,tsx}",
     "type-check": "tsc --noEmit",
