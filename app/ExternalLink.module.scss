@@ -1,0 +1,22 @@
+.externalLink {
+  border: none;
+  color: var(--link);
+  font-size: inherit;
+  border-bottom: 1px solid currentColor;
+  padding-bottom: 2px;
+  display: inline-block;
+  background-color: transparent;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-decoration: none;
+
+  &:hover {
+    color: var(--link-hover);
+  }
+
+  &:focus {
+    outline: none;
+    transform: scale(1.05);
+    box-shadow: 0 1rem 4rem rgba(0, 0, 0, 0.25);
+  }
+}

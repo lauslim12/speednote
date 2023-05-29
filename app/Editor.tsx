@@ -2,7 +2,8 @@
 
 import { memo, useEffect, useState } from 'react';
 
-import styles from './Editor.module.css';
+import Button from './Button';
+import styles from './Editor.module.scss';
 import Input from './Input';
 import { getNotes, storeContent, storeLastUpdated, storeTitle } from './store';
 import useDebounce from './useDebounce';
@@ -119,14 +120,10 @@ const Editor = () => {
       </section>
 
       <section className={styles.section}>
-        <button className={styles.button} onClick={handleButtonClick('clear')}>
-          Clear content
-        </button>
+        <Button onClick={handleButtonClick('clear')}>Clear content</Button>
 
         {lastChanges && (
-          <button className={styles.button} onClick={handleButtonClick('undo')}>
-            Undo clear
-          </button>
+          <Button onClick={handleButtonClick('undo')}>Undo clear</Button>
         )}
       </section>
     </>

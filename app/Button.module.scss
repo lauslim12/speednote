@@ -8,18 +8,18 @@
   background-color: transparent;
   cursor: pointer;
   transition: all 0.2s;
-}
 
-.button:hover {
-  color: var(--time);
-}
+  &:hover {
+    color: var(--time);
+  }
 
-.button:focus {
-  outline: none;
-  transform: scale(1.05);
-  box-shadow: 0 1rem 4rem rgba(0, 0, 0, 0.25);
-}
+  &:focus {
+    outline: none;
+    transform: scale(1.05);
+    box-shadow: 0 1rem 4rem rgba(0, 0, 0, 0.25);
+  }
 
-.button:last-of-type:not(:first-of-type) {
-  margin-left: 0.5rem;
+  &:last-of-type:not(:first-of-type) {
+    margin-left: 0.5rem;
+  }
 }

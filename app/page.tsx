@@ -1,6 +1,7 @@
 import dynamic from 'next/dynamic';
 
-import styles from './page.module.css';
+import ExternalLink from './ExternalLink';
+import styles from './page.module.scss';
 
 // Lazy-load the note editor to make sure that it is not server-side rendered, because
 // we need the `localStorage` to work, so it has to be purely a client component. In Next.js 13,
@@ -22,6 +23,7 @@ const Editor = dynamic(() => import('./Editor'), {
   ),
 });
 
+// Same treatment as above, because we're using the `window` object, we cannot rely on SSR.
 const Configuration = dynamic(() => import('./Configuration'), { ssr: false });
 
 /**
@@ -35,14 +37,9 @@ const Home = () => {
       <header className={styles.header}>
         <Configuration />
 
-        <a
-          href="https://github.com/lauslim12/speednote"
-          target="_blank"
-          rel="noopener noreferrer"
-          className={styles.externalLink}
-        >
+        <ExternalLink href="https://github.com/lauslim12/speednote">
           About
-        </a>
+        </ExternalLink>
       </header>
 
       <main className={styles.main}>

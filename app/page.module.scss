@@ -1,0 +1,52 @@
+@use './breakpoints';
+
+.header {
+  display: flex;
+  justify-content: flex-end;
+  padding: 1rem;
+  gap: 7.5px;
+}
+
+.main {
+  padding: 2rem 5rem 2rem 5rem;
+  flex: 1;
+
+  /* To make the loader to the center of the screen. */
+  display: flex;
+  flex-direction: column;
+
+  @include breakpoints.respond(largest) {
+    padding: 1.5rem 4rem 1.5rem 4rem;
+  }
+
+  @include breakpoints.respond(large) {
+    padding: 1rem 3rem 1rem 3rem;
+  }
+
+  @include breakpoints.respond(medium) {
+    padding: 0.5rem 1.5rem 0.5rem 1.5rem;
+  }
+
+  @include breakpoints.respond(small) {
+    padding: 0rem 0.5rem 0rem 0.5rem;
+  }
+}
+
+.loader {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+}
+
+.footer {
+  display: flex;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.thanks {
+  font-size: 12px;
+  text-align: center;
+  color: var(--thanks);
+}

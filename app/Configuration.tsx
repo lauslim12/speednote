@@ -2,7 +2,7 @@
 
 import { memo, useState } from 'react';
 
-import styles from './Configuration.module.css';
+import Button from './Button';
 
 const Configuration = () => {
   const [isDark, setIsDark] = useState(
@@ -25,13 +25,9 @@ const Configuration = () => {
 
   return (
     <>
-      <button
-        className={styles.button}
-        aria-label="Color mode switch"
-        onClick={handleThemeChange}
-      >
+      <Button aria-label="Color mode switch" onClick={handleThemeChange}>
         {isDark ? 'Lighten' : 'Darken'}
-      </button>
+      </Button>
     </>
   );
 };
