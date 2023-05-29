@@ -18,10 +18,12 @@ All of the states / data that are inside of the application is **intentionally d
 
 - Blazingly fast. When you open the app, you can instantly type after the editor is mounted.
 - Utilization of Server Components and Client Components for maximum performance.
+- Configurable theme, it will respect the system's theme, but you can always change it.
 - There is an autosave function with debounce, so you don't have to worry about lag and data loss (stored in `localStorage`).
 - Because we're using `localStorage`, it is [known to be one of the fastest storage system](https://stackoverflow.com/a/46779140/13980107) and [can save in less than a millisecond](https://gomakethings.com/how-fast-is-vanilla-js-localstorage/).
 - Lightweight. I intentionally did not use any heavy UI-frameworks and decided to just use a normal CSS to make it featherweight.
 - Responsive to make sure that this application could be used in various environments without losing UX.
+- Works offline without any internet connection because this is a Progressive Web Application.
 - Tested with React Testing Library to make sure everything works properly according to the expectations.
 
 ## Comparison
