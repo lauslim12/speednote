@@ -4,20 +4,51 @@ Optimized Progressive Web Application (PWA) to input your thoughts as soon as po
 
 ## Background
 
-I am a person who enjoys taking notes of the amount of money I spent on something every single day. In Japan, it is easy to keep track of everything because of its relative clearness with regards to prices and its no tipping culture. I usually type my expense right after spending my money to make sure that I do not forget. Problem starts to happen when I use my usual note-taking app. After a long time of using it, I realized that it is unreasonably slow and I have to navigate through different menus before being able to type my expenses. Honestly, the slowness is starting to annoy me, so I decided to make another application to fulfill my use-case.
+I am a person who enjoys taking notes of the amount of money I spent on something every single day. In Japan, it is easy to keep track of everything because of its relative clearness with regards to prices and its no tipping culture. I usually type my expense right after spending my money to make sure that I do not forget (on the spot). Problem starts to happen when I use my usual note-taking app. After a long time of using it, I realized that it is unreasonably slow and I have to navigate through different menus before being able to type my expenses. My usual note-taking app is good for my usual note-taking activities, but not for this very specific activity. It is not just about expenses, sometimes I wrote something so I did not forget it later, and I usually don't want to create another note just for that specific purpose.
+
+Honestly, the slowness and the overload of features is starting to get the better of me, so I decided to make another application to fulfill my personal use-case.
+
+## Architecture and Concept
+
+The concept of this application is just a single note with a title that you could use according to your use-case. You will type whatever you need / have been thinking about in that single note, and you **should move it to other note applications when you have the chance to do so**. This application should only be used for writing a general idea of something on the spot so that you do not forget it.
+
+All of the states / data that are inside of the application is **intentionally designed to be stored as strings**, this is to make sure that everything is on the best performance because assigning values to an object tends to be an expensive operation. The data store that is used by the application is also using the [fastest possible data store that could persist values](https://stackoverflow.com/a/56848541/13980107) across browser refreshes. However, despite its speed, it should be kept in mind that this application **is not supposed to and should not be used for long-term note saving**. It is also recommended to not exceed the browser's `localStorage` size (making notes that are too long). You could test the maximum size of your browser's `localStorage` from [this website](https://arty.name/localstorage.html).
 
 ## Features
 
 - Blazingly fast. When you open the app, you can instantly type after the editor is mounted.
 - Utilization of Server Components and Client Components for maximum performance.
 - There is an autosave function with debounce, so you don't have to worry about lag and data loss (stored in `localStorage`).
+- Because we're using `localStorage`, it is [known to be one of the fastest storage system](https://stackoverflow.com/a/46779140/13980107) and [can save in less than a millisecond](https://gomakethings.com/how-fast-is-vanilla-js-localstorage/).
 - Lightweight. I intentionally did not use any heavy UI-frameworks and decided to just use a normal CSS to make it featherweight.
 - Responsive to make sure that this application could be used in various environments without losing UX.
 - Tested with React Testing Library to make sure everything works properly according to the expectations.
 
-## Quick Start
+## Comparison
 
-To start development quickly, follow the steps below:
+**To be kept in mind, the comparison is definitely not apple-to-apple as Speednote is only designed to fulfill a specific use-case, not a general use-case**. Table below will compare Speednote with several other note-taking applications:
+
+|    Product     | Application Size | Require Authentication |                  Platform                  |                    Maximum Note Size                    |                                                                   Concept / Standout Feature                                                                    |
+| :------------: | :--------------: | :--------------------: | :----------------------------------------: | :-----------------------------------------------------: | :-------------------------------------------------------------------------------------------------------------------------------------------------------------: |
+|   Speednote    |     ~450 KB      |           No           |             Web, Mobile (PWA)              | Usually 5 MB or depends on your `localStorage` capacity |  Single-note, text-only, completely independent of account systems, and designed to be a temporary note storage before the content is moved to other platforms  |
+|  Google Keep   |      16 MB       |          Yes           | Web, Mobile (Standalone and PWA available) |     15 GB (free version, uses your Google account)      |     Multiple notes, supports placing images and audio, checkboxes for to-do lists, labels, drawing, also possible to add collaborator and reminders as well     |
+|     Notion     |      38 MB       |          Yes           |          Web, Mobile (Standalone)          |                        Unlimited                        |    Feature-rich, unique building blocks (lists, callouts, dividers, etc.), bookmarks, public pages, hierarchical organization, amazing tables, and many more    |
+|    Evernote    |      120 MB      |          Yes           |          Web, Mobile (Standalone)          |                   25 MB for one note                    | Feature-rich, connectivity with various SaaS products, tasks management, customized search, templates, annotations, version history, web clipper, and many more |
+|    OneNote     |      80 MB       |          Yes           |          Web, Mobile (Standalone)          | Free up to 5GB for notes (uses your Microsoft account)  |                                     Very free, you can add text anywhere, supports placing images and rich-text formatting                                      |
+| Standard Notes |      45 MB       |           No           | Web, Mobile (Standalone and PWA available) |                        Unlimited                        |    Encrpyted, supports rich-text editing (includes Markdown), customizable themes, unique search, smart views, doubles as Authenticator + blogging platform     |
+
+Note that the comparison was made on **29 May 2023**.
+
+## Requirements
+
+You only need these software packages to run this application:
+
+- [Node.js LTS](https://nodejs.org/en)
+- [Yarn Classic](https://classic.yarnpkg.com/lang/en/)
+
+## Development
+
+To start development quickly, please follow the steps below:
 
 ```bash
 git clone git@github.com:lauslim12/speednote.git
@@ -26,17 +57,14 @@ yarn
 yarn dev
 ```
 
-To create a production build, follow the steps below:
+To create a production build, you need to follow the steps below:
 
 ```bash
 yarn build
 yarn start
 ```
 
-## Limitations
-
-- Despite its speed, this application is a bit volatile (relies on `localStorage`) and should not be used for long-term note saving. You should also not try to exceed your browser's `localStorage` size (do not make notes that are too large / too long). It is said that the maximum size for `localStorage` is 5MB.
-- Actually we should await for the debounce to finish before allowing the user to close the browser, not just invoking it. If the debounce is not finished and the user closes the browser, the changes will not be saved. But, to be honest, [from this benchmark](https://stackoverflow.com/a/46779140/13980107) and [this benchmark](https://gomakethings.com/how-fast-is-vanilla-js-localstorage/), this is a very edge-case because `localStorage` can save in less than a millisecond. A good solution is to add an 'Unsaved Confirmation' before we close the browser is the debounce is still not finished yet.
+There are no dependencies (environment variables or the like), this is a standalone project.
 
 ## Credits
 
