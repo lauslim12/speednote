@@ -1,3 +1,5 @@
+@use './breakpoints';
+
 .header {
   display: flex;
   justify-content: flex-end;
@@ -12,6 +14,22 @@
   /* To make the loader to the center of the screen. */
   display: flex;
   flex-direction: column;
+
+  @include breakpoints.respond(largest) {
+    padding: 1.5rem 4rem 1.5rem 4rem;
+  }
+
+  @include breakpoints.respond(large) {
+    padding: 1rem 3rem 1rem 3rem;
+  }
+
+  @include breakpoints.respond(medium) {
+    padding: 0.5rem 1.5rem 0.5rem 1.5rem;
+  }
+
+  @include breakpoints.respond(small) {
+    padding: 0rem 0.5rem 0rem 0.5rem;
+  }
 }
 
 .loader {
@@ -27,59 +45,8 @@
   padding: 1rem;
 }
 
-.externalLink {
-  border: none;
-  color: var(--thanks);
-  font-size: inherit;
-  border-bottom: 1px solid currentColor;
-  padding-bottom: 2px;
-  display: inline-block;
-  background-color: transparent;
-  cursor: pointer;
-  transition: all 0.2s;
-  text-decoration: none;
-}
-
-.externalLink:hover {
-  color: var(--time);
-}
-
-.externalLink:focus {
-  outline: none;
-  transform: scale(1.05);
-  box-shadow: 0 1rem 4rem rgba(0, 0, 0, 0.25);
-}
-
 .thanks {
   font-size: 12px;
   text-align: center;
   color: var(--thanks);
-}
-
-/* 1100px */
-@media only screen and (max-width: 69.75em) {
-  .main {
-    padding: 1.5rem 4rem 1.5rem 4rem;
-  }
-}
-
-/* 900px */
-@media only screen and (max-width: 56.25em) {
-  .main {
-    padding: 1rem 3rem 1rem 3rem;
-  }
-}
-
-/* 600px */
-@media only screen and (max-width: 37.5em) {
-  .main {
-    padding: 0.5rem 1.5rem 0.5rem 1.5rem;
-  }
-}
-
-/* 500px */
-@media only screen and (max-width: 31.25em) {
-  .main {
-    padding: 0rem 0.5rem 0rem 0.5rem;
-  }
 }
