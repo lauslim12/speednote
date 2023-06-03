@@ -5,7 +5,13 @@ import { memo, useEffect, useState } from 'react';
 import Button from './Button';
 import styles from './Editor.module.scss';
 import Input from './Input';
-import { getNotes, storeContent, storeLastUpdated, storeTitle } from './store';
+import {
+  getData,
+  storeContent,
+  storeFrozen,
+  storeLastUpdated,
+  storeTitle,
+} from './store';
 import useDebounce from './useDebounce';
 
 const isValidTimestamp = (timestamp: string) => {
@@ -30,11 +36,12 @@ const displayReadableTime = (timestamp: string) => {
  * @returns React Functional Component.
  */
 const Editor = () => {
-  const { notes } = getNotes();
+  const { config, notes } = getData();
   const [title, setTitle] = useState(notes.title);
   const [content, setContent] = useState(notes.content);
   const [lastUpdated, setLastUpdated] = useState(notes.lastUpdated);
   const [lastChanges, setLastChanges] = useState('');
+  const [frozen, setFrozen] = useState(config.frozen);
 
   const debouncedChangeTitle = useDebounce(() => storeTitle(title));
   const debouncedChangeContent = useDebounce(() => storeContent(content));
@@ -83,7 +90,7 @@ const Editor = () => {
     <>
       <section className={styles.section}>
         {lastUpdated && isValidTimestamp(lastUpdated) ? (
-          <time className={styles.time}>
+          <time role="time" className={styles.time}>
             Last updated at {displayReadableTime(lastUpdated)}
           </time>
         ) : null}
@@ -95,6 +102,7 @@ const Editor = () => {
           type="title"
           placeholder="Enter a title"
           value={title}
+          readOnly={frozen}
           onChange={({ currentTarget: { value } }) => {
             setTitle(value);
             setLastUpdated(Date.now().toString());
@@ -110,6 +118,7 @@ const Editor = () => {
           type="content"
           placeholder="Start writing, your progress will be automatically stored in your machine's local storage"
           value={content}
+          readOnly={frozen}
           onChange={({ currentTarget: { value } }) => {
             setContent(value);
             setLastUpdated(Date.now().toString());
@@ -121,6 +130,19 @@ const Editor = () => {
 
       <section className={styles.section}>
         <Button onClick={handleButtonClick('clear')}>Clear content</Button>
+
+        <Button
+          onClick={() => {
+            setFrozen((prevState) => {
+              const nextState = prevState === 'true' ? 'false' : 'true';
+              storeFrozen(nextState);
+
+              return nextState;
+            });
+          }}
+        >
+          {frozen === 'true' ? 'Unfreeze note' : 'Freeze note'}
+        </Button>
 
         {lastChanges && (
           <Button onClick={handleButtonClick('undo')}>Undo clear</Button>
