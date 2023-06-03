@@ -6,7 +6,6 @@
   word-break: break-word;
   overflow-wrap: anywhere;
   overflow: hidden;
-  white-space: pre;
 }
 
 .title {
@@ -30,4 +29,5 @@
 
 .frozen {
   color: var(--frozen);
+  white-space: pre-wrap;
 }
