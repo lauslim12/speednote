@@ -7,6 +7,7 @@ import {
 import userEvent from '@testing-library/user-event';
 
 import Home from '@/app/page';
+import { storageKey } from '@/app/schema';
 
 // Have to mock `matchMedia` because it's not supported in Jest yet.
 // Reference: https://jestjs.io/docs/manual-mocks#mocking-methods-which-are-not-implemented-in-jsdom.
@@ -53,16 +54,24 @@ beforeAll(async () => {
 });
 
 const assertEditor = () => {
-  const [title, content, clearContentButton, undoClearButton] = [
+  const [
+    title,
+    content,
+    clearContentButton,
+    freezeNoteButton,
+    undoClearButton,
+  ] = [
     screen.getByRole('textbox', { name: 'Note title' }),
     screen.getByRole('textbox', { name: 'Note content' }),
     screen.getByRole('button', { name: 'Clear content' }),
+    screen.getByRole('button', { name: 'Freeze note' }),
     screen.queryByRole('button', { name: 'Undo clear' }), // This is not supposed to be there on the first render.
   ];
 
   expect(title).toBeInTheDocument();
   expect(content).toBeInTheDocument();
   expect(clearContentButton).toBeInTheDocument();
+  expect(freezeNoteButton).toBeInTheDocument();
   expect(undoClearButton).not.toBeInTheDocument(); // This is not supposed to be in the DOM on the first render.
 
   // We only want the title and the content and nothing else in the DOM.
@@ -71,7 +80,7 @@ const assertEditor = () => {
 
   // `undoClearButton` is not returned because we'd rather do the query again when we want to test it. The current state
   // of the `undoClearButton` here will be stale by the time we wanted to do tests against it.
-  return { title, content, clearContentButton };
+  return { title, content, freezeNoteButton, clearContentButton };
 };
 
 const assertConfiguration = () => {
@@ -119,6 +128,29 @@ test('renders properly', () => {
     'href',
     'https://github.com/lauslim12/speednote'
   );
+});
+
+test('renders and falls back properly with bad data', async () => {
+  // Put all kinds of predefined local storage.
+  localStorage.setItem(storageKey.CONFIG_FROZEN_KEY, 'not boolean');
+  localStorage.setItem(storageKey.LAST_UPDATED_STORAGE_KEY, 'an invalid date');
+  localStorage.setItem(storageKey.CONTENT_STORAGE_KEY, '123');
+  localStorage.setItem(storageKey.TITLE_STORAGE_KEY, 'Title');
+
+  // Render the app, make sure it does not crash.
+  renderWithProviders();
+
+  // Make sure all values are rendered properly.
+  const { title, content } = assertEditor();
+  expect(title).toHaveValue('Title');
+  expect(content).toHaveValue('123');
+
+  // Make sure the time is rendered properly.
+  expect(screen.queryByRole('time')).not.toBeInTheDocument();
+
+  // Edit the content, timer should be synced again.
+  await userEvent.type(content, 'Adding this value.');
+  expect(screen.getByRole('time')).toBeInTheDocument();
 });
 
 test('able to edit title and content', async () => {
@@ -171,4 +203,37 @@ test('able to switch color mode', async () => {
   await user.click(colorModeSwitchButton);
 
   expect(colorModeSwitchButton).toHaveTextContent('Darken');
+});
+
+test('able to freeze notes and unfreeze them', async () => {
+  const { user } = renderWithProviders();
+
+  // Freeze the notes.
+  const { freezeNoteButton, title, content } = assertEditor();
+  expect(freezeNoteButton).toBeEnabled();
+  await user.click(freezeNoteButton);
+
+  // Should have `readOnly` attribute.
+  expect(freezeNoteButton).toHaveAccessibleName('Unfreeze note');
+  expect(title).toHaveAttribute('readOnly');
+  expect(content).toHaveAttribute('readOnly');
+
+  // Try to type, but it also shouldn't be possible.
+  await user.type(title, 'Hello');
+  expect(title).toHaveValue('');
+  await user.type(content, 'Hi there!');
+  expect(content).toHaveValue('');
+
+  // Unfreeze the note.
+  expect(freezeNoteButton).toBeEnabled();
+  await user.click(freezeNoteButton);
+  expect(freezeNoteButton).toHaveAccessibleName('Freeze note');
+
+  // Try to type, should be possible.
+  expect(title).not.toHaveAttribute('readOnly');
+  expect(content).not.toHaveAttribute('readOnly');
+  await user.type(title, 'Hello');
+  expect(title).toHaveValue('Hello');
+  await user.type(content, 'Hi there, I just wanted to type this note.');
+  expect(content).toHaveValue('Hi there, I just wanted to type this note.');
 });
