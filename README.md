@@ -19,6 +19,7 @@ All of the states / data that are inside of the application is **intentionally d
 - Blazingly fast. When you open the app, you can instantly type after the editor is mounted.
 - Utilization of Server Components and Client Components for maximum performance.
 - Configurable theme, it will respect the system's theme initially, but you can always change it.
+- Frozen notes. If you are afraid of accidentally deleting your note, just click on `Freeze note` to freeze your notes from changes.
 - Complete with autosave function with reasonable debounce, so you don't have to worry about performance hits, lag, and data loss (stored in `localStorage`).
 - The storage that is used, `localStorage`, is [known to be one of the fastest storage system](https://stackoverflow.com/a/46779140/13980107) and [can save in less than a millisecond](https://gomakethings.com/how-fast-is-vanilla-js-localstorage/).
 - Lightweight. I intentionally did not use any heavy UI-frameworks and decided to just use a normal CSS, augmented with SCSS to make it featherweight.
