@@ -252,8 +252,13 @@ test('able to copy and see a shared note properly', async () => {
   // to the normal note, the user should see the normal note.
   await title.clear();
   await title.fill('Expense');
+  await expect(title).toHaveValue('Expense');
   await content.clear();
   await content.fill('Hi there!');
+  await expect(content).toHaveValue('Hi there!');
+
+  // Have to do this so it triggers the debounce on the spot.
+  await expect(content).toBeFocused();
 
   // Return to the normal, ensure that components and the freeze button are here.
   const returnButton = newPage.getByRole('link', {
@@ -263,17 +268,15 @@ test('able to copy and see a shared note properly', async () => {
   await returnButton.click();
 
   // Should re-render again, validate again that all have rendered successfully.
-  await expect(page).toHaveURL('/');
-  const { title: secondUpdatedTitle, content: secondUpdatedContent } =
-    await getAndAssertEditor(newPage);
+  await expect(newPage).toHaveURL('/');
 
   // Edge-case: make sure that once we get back to the normal page, the local storage is synced properly and the
   // change is using the latest one after we have updated the inputs after opening the link from the clipboard.
-  const secondUpdatedFrozenButton = page.getByRole('button', {
+  const secondUpdatedFrozenButton = newPage.getByRole('button', {
     name: 'Freeze note',
   });
-  await expect(secondUpdatedTitle).toHaveValue('Expense');
-  await expect(secondUpdatedContent).toHaveValue('Hi there!');
+  await expect(newTitle).toHaveValue('Expense');
+  await expect(newContent).toHaveValue('Hi there!');
   await expect(secondUpdatedFrozenButton).toBeVisible();
 
   // Close all sessions.
