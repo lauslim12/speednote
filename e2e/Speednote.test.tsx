@@ -199,6 +199,8 @@ test('able to copy and see a shared note properly', async () => {
 
   // Write something on the inputs.
   const { title, content, shareNoteButton } = await getAndAssertEditor(page);
+  const freezeNoteButton = page.getByRole('button', { name: 'Freeze note' });
+  await expect(freezeNoteButton).toBeVisible();
   await title.fill('Income');
   await expect(title).toHaveValue('Income');
   await content.fill('I finished a project and received 5000 JPY.');
@@ -256,9 +258,9 @@ test('able to copy and see a shared note properly', async () => {
   await content.clear();
   await content.fill('Hi there!');
   await expect(content).toHaveValue('Hi there!');
-
-  // Have to do this so it triggers the debounce on the spot.
-  await expect(content).toBeFocused();
+  await freezeNoteButton.click();
+  await expect(title).not.toBeEditable();
+  await expect(content).not.toBeEditable();
 
   // Return to the normal, ensure that components and the freeze button are here.
   const returnButton = newPage.getByRole('link', {
@@ -268,15 +270,21 @@ test('able to copy and see a shared note properly', async () => {
   await returnButton.click();
 
   // Should re-render again, validate again that all have rendered successfully.
+  await newPage.waitForURL('/');
   await expect(newPage).toHaveURL('/');
 
   // Edge-case: make sure that once we get back to the normal page, the local storage is synced properly and the
   // change is using the latest one after we have updated the inputs after opening the link from the clipboard.
+  const rerenderedTitle = newPage.getByRole('textbox', { name: 'Note title' });
+  const rerenderedContent = newPage.getByRole('textbox', {
+    name: 'Note content',
+  });
   const secondUpdatedFrozenButton = newPage.getByRole('button', {
     name: 'Freeze note',
   });
-  await expect(newTitle).toHaveValue('Expense');
-  await expect(newContent).toHaveValue('Hi there!');
+
+  await expect(rerenderedTitle).toHaveValue('Expense');
+  await expect(rerenderedContent).toHaveValue('Hi there!');
   await expect(secondUpdatedFrozenButton).toBeVisible();
 
   // Close all sessions.
