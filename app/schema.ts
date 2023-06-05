@@ -1,5 +1,8 @@
 import { z } from 'zod';
 
+const BASE64_REGEX =
+  /^([0-9a-zA-Z+/]{4})*(([0-9a-zA-Z+/]{2}==)|([0-9a-zA-Z+/]{3}=))?$/;
+
 /**
  * Custom Zod schema to create a string-like with a unique fallback. See documentation
  * below to coerce empty strings to `undefined` so we can always set the default value.
@@ -57,6 +60,43 @@ const stringAsCompatibleBoolean = () => {
   }, z.union([z.literal('true'), z.literal('false')]));
 };
 
+/**
+ * Schema that we use to share notes to other people.
+ */
+export const sharedNoteSchema = z.discriminatedUnion('isShared', [
+  z.object({
+    isShared: z.literal(true),
+    title: z
+      .string()
+      .nullable()
+      .transform((val) => {
+        if (!val || !BASE64_REGEX.test(val)) {
+          return 'Invalid title format from the shared URL, so we cannot read it.';
+        }
+
+        return window.atob(val);
+      }),
+    content: z
+      .string()
+      .nullable()
+      .transform((val) => {
+        if (!val || !BASE64_REGEX.test(val)) {
+          return 'Invalid content format from the shared URL, so we cannot read it for now. Please ask the other party to re-share the URL!';
+        }
+
+        return window.atob(val);
+      }),
+  }),
+  z.object({
+    isShared: z.literal(false),
+  }),
+]);
+
+export type SharedNote = z.infer<typeof sharedNoteSchema>;
+
+/**
+ * Storage keys for the current implementation of `localStorage` key value pairs.
+ */
 export const storageKey = Object.freeze({
   CONFIG_FROZEN_KEY: 'frozen',
   TITLE_STORAGE_KEY: 'title',
@@ -64,6 +104,9 @@ export const storageKey = Object.freeze({
   LAST_UPDATED_STORAGE_KEY: 'last-updated',
 });
 
+/**
+ * Application data schema.
+ */
 export const dataSchema = z.object({
   config: z.object({
     frozen: stringAsCompatibleBoolean(),
