@@ -61,5 +61,5 @@ jobs:
         if: always() # Always upload report even if e2e tests fail.
         with:
           name: playwright-report
-          path: playwright-report/index.html
+          path: playwright-report/
           retention-days: 1

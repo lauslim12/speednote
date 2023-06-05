@@ -7,7 +7,7 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   workers: process.env.CI ? 1 : undefined,
-  reporter: process.env.CI ? 'github' : 'html',
+  reporter: 'html',
   webServer: {
     command: process.env.PRODUCTION_READY ? 'yarn start' : 'yarn dev', // In production ready environments, use `yarn start` to simulate production environments.
     url: PLAYWRIGHT_BASE_URL,
