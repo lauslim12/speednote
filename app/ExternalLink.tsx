@@ -8,11 +8,12 @@ type ExternalLinkProps = {
   href: string;
 } & Omit<ComponentPropsWithoutRef<'a'>, 'href' | 'target' | 'rel'>;
 
-const ExternalLink = ({ children, ...rest }: ExternalLinkProps) => (
+const ExternalLink = ({ children, href, ...rest }: ExternalLinkProps) => (
   <a
     target="_blank"
     rel="noopener noreferrer"
     className={styles.externalLink}
+    href={href}
     {...rest}
   >
     {children}
