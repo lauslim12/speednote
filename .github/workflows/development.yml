@@ -54,7 +54,7 @@ jobs:
         run: npx playwright install --with-deps
 
       - name: Run Playwright tests
-        run: yarn playwright-ci
+        run: yarn e2e-ci
 
       - name: Upload test report artifact to GHA
         uses: actions/upload-artifact@v3
