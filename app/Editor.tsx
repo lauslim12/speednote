@@ -154,39 +154,57 @@ const Editor = () => {
       </section>
 
       <section className={styles.section}>
-        <Input
-          aria-label="Note title"
-          type="title"
-          placeholder={sharedNote.isShared ? sharedNote.title : 'Enter a title'}
-          value={sharedNote.isShared ? sharedNote.title : title}
-          readOnly={sharedNote.isShared ? 'true' : frozen}
-          onChange={({ currentTarget: { value } }) => {
-            setTitle(value);
-            setLastUpdated(Date.now().toString());
-            debouncedChangeTitle();
-            debouncedChangeLastUpdated();
-          }}
-        />
+        {sharedNote.isShared ? (
+          <Input
+            aria-label="Note title"
+            type="title"
+            placeholder={sharedNote.title}
+            value={sharedNote.title}
+            readOnly={'true'}
+          />
+        ) : (
+          <Input
+            aria-label="Note title"
+            type="title"
+            placeholder={'Enter a title'}
+            value={title}
+            readOnly={frozen}
+            onChange={({ currentTarget: { value } }) => {
+              setTitle(value);
+              setLastUpdated(Date.now().toString());
+              debouncedChangeTitle();
+              debouncedChangeLastUpdated();
+            }}
+          />
+        )}
       </section>
 
       <section className={styles.section}>
-        <Input
-          aria-label="Note content"
-          type="content"
-          placeholder={
-            sharedNote.isShared
-              ? sharedNote.content
-              : "Start writing, your progress will be automatically stored in your machine's local storage"
-          }
-          value={sharedNote.isShared ? sharedNote.content : content}
-          readOnly={sharedNote.isShared ? 'true' : frozen}
-          onChange={({ currentTarget: { value } }) => {
-            setContent(value);
-            setLastUpdated(Date.now().toString());
-            debouncedChangeContent();
-            debouncedChangeLastUpdated();
-          }}
-        />
+        {sharedNote.isShared ? (
+          <Input
+            aria-label="Note content"
+            type="content"
+            placeholder={sharedNote.content}
+            value={sharedNote.content}
+            readOnly={'true'}
+          />
+        ) : (
+          <Input
+            aria-label="Note content"
+            type="content"
+            placeholder={
+              "Start writing, your progress will be automatically stored in your machine's local storage"
+            }
+            value={content}
+            readOnly={frozen}
+            onChange={({ currentTarget: { value } }) => {
+              setContent(value);
+              setLastUpdated(Date.now().toString());
+              debouncedChangeContent();
+              debouncedChangeLastUpdated();
+            }}
+          />
+        )}
       </section>
 
       <section className={styles.section}>
