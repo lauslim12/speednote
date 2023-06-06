@@ -15,7 +15,7 @@ type InputProps = {
   type: 'title' | 'content';
   value: string;
   readOnly: Data['config']['frozen'];
-  onChange: (e: ChangeEvent<HTMLTextAreaElement>) => void;
+  onChange?: (e: ChangeEvent<HTMLTextAreaElement>) => void;
 } & Omit<
   ComponentPropsWithoutRef<'textarea'>,
   'style' | 'value' | 'onChange' | 'readOnly'

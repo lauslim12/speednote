@@ -5,25 +5,34 @@ import {
   waitForElementToBeRemoved,
 } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import * as routerMockComponents from 'next-router-mock';
+import { MemoryRouterProvider } from 'next-router-mock/MemoryRouterProvider';
 
 import Home from '@/app/page';
 import { storageKey } from '@/app/schema';
 
-// Have to mock `matchMedia` because it's not supported in Jest yet.
-// Reference: https://jestjs.io/docs/manual-mocks#mocking-methods-which-are-not-implemented-in-jsdom.
+// Have to mock `matchMedia` because it's not supported in Jest yet. We only use `matches`, so for now we only
+// implement the `matches` property mock. Reference: https://jestjs.io/docs/manual-mocks#mocking-methods-which-are-not-implemented-in-jsdom.
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
-  value: jest.fn().mockImplementation((query) => ({
-    matches: false,
-    media: query,
-    onchange: null,
-    addListener: jest.fn(), // deprecated
-    removeListener: jest.fn(), // deprecated
-    addEventListener: jest.fn(),
-    removeEventListener: jest.fn(),
-    dispatchEvent: jest.fn(),
-  })),
+  value: jest.fn().mockImplementation(() => ({ matches: false })),
 });
+
+// Have to mock `next/navigation` return values because we need it to test the routing capabilities
+// of the application. Next.js is currently unable to be run as it is on Jest environment, so we need those
+// mocks. Reference: https://github.com/scottrippey/next-router-mock/issues/67#issuecomment-1564906960.
+jest.mock('next/navigation', () => ({
+  ...routerMockComponents,
+  usePathname: () => {
+    const router = routerMockComponents.useRouter();
+    return router.pathname;
+  },
+  useSearchParams: () => {
+    const router = routerMockComponents.useRouter();
+    const path = router.asPath.split('?')?.[1] ?? '';
+    return new URLSearchParams(path);
+  },
+}));
 
 /**
  * This `beforeEach` hook is necessary to prevent unexpected values on tests. `localStorage`
@@ -54,24 +63,19 @@ beforeAll(async () => {
 });
 
 const assertEditor = () => {
-  const [
-    title,
-    content,
-    clearContentButton,
-    freezeNoteButton,
-    undoClearButton,
-  ] = [
-    screen.getByRole('textbox', { name: 'Note title' }),
-    screen.getByRole('textbox', { name: 'Note content' }),
-    screen.getByRole('button', { name: 'Clear content' }),
-    screen.getByRole('button', { name: 'Freeze note' }),
-    screen.queryByRole('button', { name: 'Undo clear' }), // This is not supposed to be there on the first render.
-  ];
+  const [title, content, clearContentButton, shareNoteButton, undoClearButton] =
+    [
+      screen.getByRole('textbox', { name: 'Note title' }),
+      screen.getByRole('textbox', { name: 'Note content' }),
+      screen.getByRole('button', { name: 'Clear content' }),
+      screen.getByRole('button', { name: 'Copy/share note link' }),
+      screen.queryByRole('button', { name: 'Undo clear' }), // This is not supposed to be there on the first render.
+    ];
 
   expect(title).toBeInTheDocument();
   expect(content).toBeInTheDocument();
   expect(clearContentButton).toBeInTheDocument();
-  expect(freezeNoteButton).toBeInTheDocument();
+  expect(shareNoteButton).toBeInTheDocument();
   expect(undoClearButton).not.toBeInTheDocument(); // This is not supposed to be in the DOM on the first render.
 
   // We only want the title and the content and nothing else in the DOM.
@@ -80,7 +84,7 @@ const assertEditor = () => {
 
   // `undoClearButton` is not returned because we'd rather do the query again when we want to test it. The current state
   // of the `undoClearButton` here will be stale by the time we wanted to do tests against it.
-  return { title, content, freezeNoteButton, clearContentButton };
+  return { title, content, shareNoteButton, clearContentButton };
 };
 
 const assertConfiguration = () => {
@@ -94,12 +98,17 @@ const assertConfiguration = () => {
   return { colorModeSwitchButton };
 };
 
-const renderWithProviders = () => {
+const renderWithProviders = (route?: string) => {
   const user = userEvent.setup();
 
+  // `MemoryRouterProvider` is useful if we want to start from a URL different than the usual.
   return {
     user,
-    ...render(<Home />),
+    ...render(
+      <MemoryRouterProvider url={route}>
+        <Home />
+      </MemoryRouterProvider>
+    ),
   };
 };
 
@@ -209,7 +218,9 @@ test('able to freeze notes and unfreeze them', async () => {
   const { user } = renderWithProviders();
 
   // Freeze the notes.
-  const { freezeNoteButton, title, content } = assertEditor();
+  const { title, content } = assertEditor();
+  const freezeNoteButton = screen.getByRole('button', { name: 'Freeze note' });
+  expect(freezeNoteButton).toBeInTheDocument();
   expect(freezeNoteButton).toBeEnabled();
   await user.click(freezeNoteButton);
 
@@ -237,3 +248,103 @@ test('able to freeze notes and unfreeze them', async () => {
   await user.type(content, 'Hi there, I just wanted to type this note.');
   expect(content).toHaveValue('Hi there, I just wanted to type this note.');
 });
+
+test('able to copy shared note properly', async () => {
+  // Because it's important to ensure that the title and the content is encoded properly,
+  // I decided to spy on this function to make sure that it doesn't do anything unexpected.
+  const mockWriteText = jest
+    .spyOn(window.navigator.clipboard, 'writeText')
+    .mockImplementation();
+
+  // Render the app with our new browser context.
+  const { user } = renderWithProviders();
+
+  // Write something on the inputs.
+  const { title, content, shareNoteButton } = assertEditor();
+  await user.type(title, 'Income');
+  expect(title).toHaveValue('Income');
+  await user.type(content, 'I finished a project and received 5000 JPY.');
+  expect(content).toHaveValue('I finished a project and received 5000 JPY.');
+
+  // Click on the `Share note` button.
+  const expectedEncodedTitle = encodeURIComponent('SW5jb21l');
+  const expectedEncodedContent = encodeURIComponent(
+    'SSBmaW5pc2hlZCBhIHByb2plY3QgYW5kIHJlY2VpdmVkIDUwMDAgSlBZLg=='
+  );
+  await user.click(shareNoteButton);
+  expect(mockWriteText).toHaveBeenCalledTimes(1);
+  expect(mockWriteText).toHaveBeenCalledWith(
+    `${window.origin}?title=${expectedEncodedTitle}&content=${expectedEncodedContent}`
+  );
+});
+
+test('able to see shared URL properly', async () => {
+  const startUrl = `${window.origin}?title=SW5jb21l&content=SSBmaW5pc2hlZCBhIHByb2plY3QgYW5kIHJlY2VpdmVkIDUwMDAgSlBZLg%3D%3D`;
+  const { user } = renderWithProviders(startUrl);
+
+  const { title, content } = assertEditor();
+  expect(title).toHaveAttribute('readOnly');
+  expect(content).toHaveAttribute('readOnly');
+  expect(title).toHaveValue('Income');
+  expect(content).toHaveValue('I finished a project and received 5000 JPY.');
+
+  // Freeze note button should not be here.
+  const freezeNoteButton = screen.queryByRole('button', {
+    name: 'Freeze note',
+  });
+  expect(freezeNoteButton).not.toBeInTheDocument();
+
+  // Click to return to our normal note.
+  const returnButton = screen.getByRole('link', {
+    name: 'Return to your note',
+  });
+  expect(returnButton).toBeInTheDocument();
+  expect(returnButton).toBeEnabled();
+  await user.click(returnButton);
+
+  // Should expect that the title and content have disappeared because we returned back to
+  // the page without the URL query parameters.
+  expect(title).toHaveValue('');
+  expect(content).toHaveValue('');
+
+  const updatedFreezeNoteButton = screen.getByRole('button', {
+    name: 'Freeze note',
+  });
+  expect(updatedFreezeNoteButton).toBeInTheDocument();
+});
+
+test.each([
+  {
+    name: 'invalid title and content',
+    url: '?title=xxx&content=yyy',
+    expectedTitle:
+      'Invalid title format from the shared URL, so we cannot read it.',
+    expectedContent:
+      'Invalid content format from the shared URL, so we cannot read it for now. Please ask the other party to re-share the URL!',
+  },
+  {
+    name: 'title only',
+    url: '?title=xxx&content=QmVhdXRpZnVsIFRyYXVtYQ==',
+    expectedTitle:
+      'Invalid title format from the shared URL, so we cannot read it.',
+    expectedContent: 'Beautiful Trauma',
+  },
+  {
+    name: 'content only',
+    url: '?title=RW5jaGFudGVk&content=123',
+    expectedTitle: 'Enchanted',
+    expectedContent:
+      'Invalid content format from the shared URL, so we cannot read it for now. Please ask the other party to re-share the URL!',
+  },
+])(
+  'able to handle invalid format of shared note url ($name)',
+  async ({ url, expectedTitle, expectedContent }) => {
+    renderWithProviders(url);
+
+    const { content, title } = assertEditor();
+    expect(title).toHaveValue(expectedTitle);
+    expect(content).toHaveValue(expectedContent);
+    expect(title).toHaveAttribute('readOnly');
+    expect(content).toHaveAttribute('readOnly');
+  }
+);

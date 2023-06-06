@@ -10,7 +10,7 @@ Honestly, the slowness and the overload of features is starting to get the bette
 
 ## Architecture and Concept
 
-The concept of this application is just a single note with a title that you could use according to your use-case. You will type whatever you need / have been thinking about in that single note, and you **should move it to other note applications when you have the chance to do so**. This application should only be used for writing a general idea of something on the spot so that you do not forget it.
+The concept of this application is just a single note with a title that you could use according to your use-case. You will type whatever you need / have been thinking about in that single note, and you **should move it to other note applications when you have the chance to do so**. This application should only be used for writing a general idea of something on the spot so that you do not forget it. At the moment, there are two terminologies when using Speednote: `title` is the title of the note, and `content` is the content of the note.
 
 All of the states / data that are inside of the application is **intentionally designed to be stored as strings**, this is to make sure that everything is on the best performance because assigning values to an object tends to be an expensive operation. The data store that is used by the application is also using the [fastest possible data store that could persist values](https://stackoverflow.com/a/56848541/13980107) across browser refreshes. The saving is done by implementing autosaves with debounce to make sure that it does not overload the browser. However, despite its speed, it should be kept in mind that this application **is not supposed to and should not be used for long-term note saving**. It is also recommended to not exceed the browser's `localStorage` size (making notes that are too long). You could test the maximum size of your browser's `localStorage` from [this website](https://arty.name/localstorage.html).
 
@@ -20,12 +20,14 @@ All of the states / data that are inside of the application is **intentionally d
 - Utilization of Server Components and Client Components for maximum performance.
 - Configurable theme, it will respect the system's theme initially, but you can always change it.
 - Frozen notes. If you are afraid of accidentally deleting your note, just click on `Freeze note` to freeze your notes from changes.
+- Shareable notes. You can share your note to other people by clicking `Copy/share note link` button. It will automatically copy your note-specific link to your clipboard. The format of the shared note is `https://<SPEEDNOTE_URL>/?title=<BASE64_ENCODED_TEXT>&content=<BASE64_ENCODED_TEXT>`. You can just share the `title` or the `content`, and anything else will be ignored if there are unknown query parameters.
 - Complete with autosave function with reasonable debounce, so you don't have to worry about performance hits, lag, and data loss (stored in `localStorage`).
 - The storage that is used, `localStorage`, is [known to be one of the fastest storage system](https://stackoverflow.com/a/46779140/13980107) and [can save in less than a millisecond](https://gomakethings.com/how-fast-is-vanilla-js-localstorage/).
 - Lightweight. I intentionally did not use any heavy UI-frameworks and decided to just use a normal CSS, augmented with SCSS to make it featherweight.
 - Responsive to make sure that this application could be used in various environments without losing UX.
 - Works offline without any internet connection because this is a Progressive Web Application.
 - Tested with React Testing Library to make sure everything works properly according to the expectations.
+- Tested with Playwright (full end-to-end tests) as a way to assure that this application works in the browser properly and according to the expectations.
 
 ## Comparison
 
@@ -75,6 +77,21 @@ yarn start
 ```
 
 There are no dependencies (environment variables or the like), this is a standalone project.
+
+## Tests
+
+Because this project is still small, we can achieve a relatively high enough code coverage. There are two test libraries used in this project: React Testing Library and Playwright.
+
+```bash
+# To run RTL tests, do the commands below:
+yarn test
+yarn test-ci
+
+# To run Playwright tests, do the commands below:
+yarn e2e
+yarn e2e-ci
+yarn e2e-prod
+```
 
 ## Contributions
 

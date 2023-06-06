@@ -33,3 +33,33 @@ jobs:
 
       - name: Build application
         run: yarn build
+
+  e2e:
+    timeout-minutes: 60
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Install dependencies
+        run: yarn --frozen-lockfile
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps
+
+      - name: Run Playwright tests
+        run: yarn e2e-ci
+
+      - name: Upload test report artifact to GHA
+        uses: actions/upload-artifact@v3
+        if: always() # Always upload report even if e2e tests fail.
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 1
