@@ -1,6 +1,6 @@
 import dynamic from 'next/dynamic';
 
-import ExternalLink from './ExternalLink';
+import Link from './Link';
 import styles from './page.module.scss';
 
 // Lazy-load the note editor to make sure that it is not server-side rendered, because
@@ -37,9 +37,9 @@ const Home = () => {
       <header className={styles.header}>
         <Configuration />
 
-        <ExternalLink href="https://github.com/lauslim12/speednote">
+        <Link type="external" href="https://github.com/lauslim12/speednote">
           About
-        </ExternalLink>
+        </Link>
       </header>
 
       <main className={styles.main}>

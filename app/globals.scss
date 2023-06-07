@@ -1,13 +1,16 @@
 :root {
+  // Background
   --foreground-rgb: 0, 0, 0;
   --background-start-rgb: 214, 219, 220;
   --background-end-rgb: 255, 255, 255;
 
-  --link: #ef5777;
-  --link-hover: #0984e3;
+  // Components
+  --link: #0984e3;
   --thanks: #ee5a24;
   --time: #636e72;
   --frozen: #808e9b; // Choices: #808e9b #596275
+  --black: #000000;
+  --white: #ffffff;
 }
 
 @media (prefers-color-scheme: dark) {
