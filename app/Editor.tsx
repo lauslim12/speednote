@@ -106,13 +106,13 @@ const Editor = () => {
     });
   };
 
-  const handleShareButtonClick = async () => {
+  const handleShareButtonClick = () => {
     // Invoke all debounces to make sure all of the states are in their final value.
     debouncedChangeTitle.flush();
     debouncedChangeContent.flush();
 
     // Set new query parameters.
-    const newSearchParams = new URLSearchParams(window.location.search);
+    const newSearchParams = new URLSearchParams();
     if (title !== '') {
       newSearchParams.set('title', window.btoa(title));
     }
@@ -122,8 +122,8 @@ const Editor = () => {
     }
 
     // Copy into the user's clipboard.
-    const url = `${window.location.origin}?${newSearchParams.toString()}`;
-    await navigator.clipboard.writeText(url);
+    const url = `${window.location.href}?${newSearchParams.toString()}`;
+    navigator.clipboard.writeText(url);
   };
 
   useEffect(() => {
