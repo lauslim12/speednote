@@ -70,7 +70,11 @@ export const sharedNoteSchema = z.discriminatedUnion('isShared', [
       .string()
       .nullable()
       .transform((val) => {
-        if (!val || !BASE64_REGEX.test(val)) {
+        if (!val) {
+          return 'No title in the shared note';
+        }
+
+        if (!BASE64_REGEX.test(val)) {
           return 'Invalid title format from the shared URL, so we cannot read it.';
         }
 
@@ -80,7 +84,11 @@ export const sharedNoteSchema = z.discriminatedUnion('isShared', [
       .string()
       .nullable()
       .transform((val) => {
-        if (!val || !BASE64_REGEX.test(val)) {
+        if (!val) {
+          return 'No content in the shared note';
+        }
+
+        if (!BASE64_REGEX.test(val)) {
           return 'Invalid content format from the shared URL, so we cannot read it for now. Please ask the other party to re-share the URL!';
         }
 
