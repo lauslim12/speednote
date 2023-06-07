@@ -1,12 +1,12 @@
 'use client';
 
-import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { memo, useEffect, useState } from 'react';
 
 import Button from './Button';
 import styles from './Editor.module.scss';
 import Input from './Input';
+import Link from './Link';
 import { sharedNoteSchema } from './schema';
 import {
   getData,
@@ -121,7 +121,10 @@ const Editor = () => {
       newSearchParams.set('content', window.btoa(content));
     }
 
-    // Copy into the user's clipboard.
+    // Copy the URL the user's clipboard. I know that the `writeText` is supposed
+    // to be asynchronous, but for some reason, if I `await` it, it doesn't work
+    // in one phone, but works in other devices. Because it's really strange, I decided
+    // to just not put `await` in front of the function call.
     const url = `${window.location.href}?${newSearchParams.toString()}`;
     navigator.clipboard.writeText(url);
   };
@@ -227,7 +230,7 @@ const Editor = () => {
 
       <section className={styles.section}>
         {sharedNote.isShared && (
-          <Link className={styles.internalLink} href="/">
+          <Link type="internal" href="/">
             Return to your note
           </Link>
         )}
