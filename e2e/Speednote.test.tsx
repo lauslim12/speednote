@@ -295,6 +295,18 @@ test('able to copy and see a shared note properly', async () => {
 // Playwright doesn't support Jest's `test.each`, so we have to use this looping workaround.
 const invalidFormatUrlTestCases = [
   {
+    name: 'valid title, but no content',
+    url: '?title=RW5jaGFudGVk',
+    expectedTitle: 'Enchanted',
+    expectedContent: 'No content in the shared note',
+  },
+  {
+    name: 'valid content, but no title',
+    url: '?content=QmVhdXRpZnVsIFRyYXVtYQ==',
+    expectedTitle: 'No title in the shared note',
+    expectedContent: 'Beautiful Trauma',
+  },
+  {
     name: 'invalid title and content',
     url: '?title=xxx&content=yyy',
     expectedTitle:
@@ -319,7 +331,7 @@ const invalidFormatUrlTestCases = [
 ];
 
 for (const { name, ...testCase } of invalidFormatUrlTestCases) {
-  test(`able to handle invalid format of shared note url (${name})`, async ({
+  test(`able to handle various format of shared note url (${name})`, async ({
     page,
   }) => {
     // Render the app with our new browser context.

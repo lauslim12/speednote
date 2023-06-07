@@ -272,14 +272,14 @@ test('able to copy shared note properly', async () => {
     'SSBmaW5pc2hlZCBhIHByb2plY3QgYW5kIHJlY2VpdmVkIDUwMDAgSlBZLg=='
   );
   await user.click(shareNoteButton);
+
+  const expectedUrl = `${window.location.href}?title=${expectedEncodedTitle}&content=${expectedEncodedContent}`;
   expect(mockWriteText).toHaveBeenCalledTimes(1);
-  expect(mockWriteText).toHaveBeenCalledWith(
-    `${window.origin}?title=${expectedEncodedTitle}&content=${expectedEncodedContent}`
-  );
+  expect(mockWriteText).toHaveBeenCalledWith(expectedUrl);
 });
 
 test('able to see shared URL properly', async () => {
-  const startUrl = `${window.origin}?title=SW5jb21l&content=SSBmaW5pc2hlZCBhIHByb2plY3QgYW5kIHJlY2VpdmVkIDUwMDAgSlBZLg%3D%3D`;
+  const startUrl = `${window.location.href}?title=SW5jb21l&content=SSBmaW5pc2hlZCBhIHByb2plY3QgYW5kIHJlY2VpdmVkIDUwMDAgSlBZLg%3D%3D`;
   const { user } = renderWithProviders(startUrl);
 
   const { title, content } = assertEditor();
@@ -315,6 +315,18 @@ test('able to see shared URL properly', async () => {
 
 test.each([
   {
+    name: 'valid title, but no content',
+    url: '?title=RW5jaGFudGVk',
+    expectedTitle: 'Enchanted',
+    expectedContent: 'No content in the shared note',
+  },
+  {
+    name: 'valid content, but no title',
+    url: '?content=QmVhdXRpZnVsIFRyYXVtYQ==',
+    expectedTitle: 'No title in the shared note',
+    expectedContent: 'Beautiful Trauma',
+  },
+  {
     name: 'invalid title and content',
     url: '?title=xxx&content=yyy',
     expectedTitle:
@@ -323,21 +335,21 @@ test.each([
       'Invalid content format from the shared URL, so we cannot read it for now. Please ask the other party to re-share the URL!',
   },
   {
-    name: 'title only',
+    name: 'invalid title only',
     url: '?title=xxx&content=QmVhdXRpZnVsIFRyYXVtYQ==',
     expectedTitle:
       'Invalid title format from the shared URL, so we cannot read it.',
     expectedContent: 'Beautiful Trauma',
   },
   {
-    name: 'content only',
+    name: 'invalid content only',
     url: '?title=RW5jaGFudGVk&content=123',
     expectedTitle: 'Enchanted',
     expectedContent:
       'Invalid content format from the shared URL, so we cannot read it for now. Please ask the other party to re-share the URL!',
   },
 ])(
-  'able to handle invalid format of shared note url ($name)',
+  'able to handle various formats of shared note url ($name)',
   async ({ url, expectedTitle, expectedContent }) => {
     renderWithProviders(url);
 
