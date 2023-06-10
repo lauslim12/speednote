@@ -27,9 +27,19 @@ const generateAppDirEntry = (entry) => {
   });
 };
 
+const getVersion = () => {
+  // Use `Date.now()` instead of `new Date()` to make sure that the time is in `ja-JP` format properly (timezone issues).
+  const buildTime = Date.now();
+
+  return Intl.DateTimeFormat('ja-JP', { dateStyle: 'long' }).format(buildTime);
+};
+
 /** @type {import('next').NextConfig} */
 const nextConfig = withPWA({
   reactStrictMode: true,
+  env: {
+    VERSION: getVersion(),
+  },
   webpack: (config) => {
     const entry = generateAppDirEntry(config.entry);
     config.entry = () => entry;

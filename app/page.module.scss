@@ -41,12 +41,20 @@
 
 .footer {
   display: flex;
+  flex-direction: column;
   justify-content: center;
   padding: 1rem;
+  gap: 2.5px;
 }
 
 .thanks {
   font-size: 12px;
   text-align: center;
   color: var(--thanks);
+}
+
+.hash {
+  font-size: 8px;
+  text-align: center;
+  color: var(--link);
 }
