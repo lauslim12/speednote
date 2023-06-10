@@ -1,26 +1,22 @@
 import { chromium, expect, type Page, test } from '@playwright/test';
 
 const getAndAssertEditor = async (page: Page) => {
-  const [title, content, clearContentButton, shareNoteButton, undoClearButton] =
-    [
-      page.getByRole('textbox', { name: 'Note title' }),
-      page.getByRole('textbox', { name: 'Note content' }),
-      page.getByRole('button', { name: 'Clear content' }),
-      page.getByRole('button', { name: 'Share note ' }),
-      page.getByRole('button', { name: 'Undo clear' }),
-    ];
+  const [title, content, shareNoteButton, undoClearButton] = [
+    page.getByRole('textbox', { name: 'Note title' }),
+    page.getByRole('textbox', { name: 'Note content' }),
+    page.getByRole('button', { name: 'Share note ' }),
+    page.getByRole('button', { name: 'Undo clear' }),
+  ];
 
   await expect(title).toBeVisible();
   await expect(content).toBeVisible();
-  await expect(clearContentButton).toBeVisible();
-
   await expect(shareNoteButton).toBeVisible();
   await expect(undoClearButton).not.toBeVisible();
 
   const inputs = page.getByRole('textbox');
   await expect(inputs).toHaveCount(2);
 
-  return { title, content, clearContentButton, shareNoteButton };
+  return { title, content, shareNoteButton };
 };
 
 const getAndAssertConfiguration = async (page: Page) => {
@@ -116,13 +112,17 @@ test('able to edit title and content', async ({ page }) => {
 test('able to clear content and undo clear', async ({ page }) => {
   await renderPage(page);
 
-  const { content, clearContentButton } = await getAndAssertEditor(page);
+  const { content } = await getAndAssertEditor(page);
   await content.fill("Tears Don't Fall, Enchanted, Beautiful Trauma");
   await expect(content).not.toHaveValue('');
   await expect(content).toHaveValue(
     "Tears Don't Fall, Enchanted, Beautiful Trauma"
   );
 
+  const clearContentButton = page.getByRole('button', {
+    name: 'Clear content',
+  });
+  await expect(clearContentButton).toBeVisible();
   await expect(clearContentButton).toBeEnabled();
   await clearContentButton.click();
   await expect(content).toHaveValue('');
@@ -170,10 +170,20 @@ test('able to freeze notes and unfreeze them', async ({ page }) => {
   await content.fill('Hi there!', { force: true });
   await expect(content).toHaveValue('');
 
+  // The `Clear content` button should be disabled.
+  const clearContentButton = page.getByRole('button', {
+    name: 'Clear content',
+  });
+  await expect(clearContentButton).toBeVisible();
+  await expect(clearContentButton).toBeDisabled();
+
   // Unfreeze the note.
   await expect(freezeNoteButton).toBeEnabled();
   await freezeNoteButton.click();
   await expect(freezeNoteButton).toHaveText('Freeze note');
+
+  // `Clear content` should not be disabled.
+  await expect(clearContentButton).toBeEnabled();
 
   // Try to type, should be possible.
   await expect(title).toBeEditable();

@@ -9,6 +9,15 @@
   cursor: pointer;
   transition: all 0.2s;
 
+  &:disabled {
+    color: var(--time);
+    opacity: 0.25;
+
+    &:hover {
+      cursor: not-allowed;
+    }
+  }
+
   &:hover {
     color: var(--time);
   }

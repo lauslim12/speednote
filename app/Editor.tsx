@@ -210,23 +210,26 @@ const Editor = () => {
         )}
       </section>
 
-      <section className={styles.section}>
-        <Button onClick={handleContentActionButtonClick('clear')}>
-          Clear content
-        </Button>
+      {!sharedNote.isShared && (
+        <section className={styles.section}>
+          <Button
+            onClick={handleContentActionButtonClick('clear')}
+            disabled={frozen === 'true'}
+          >
+            Clear content
+          </Button>
 
-        {!sharedNote.isShared && (
           <Button onClick={handleFreezeButtonClick}>
             {frozen === 'true' ? 'Unfreeze note' : 'Freeze note'}
           </Button>
-        )}
 
-        {lastChanges && (
-          <Button onClick={handleContentActionButtonClick('undo')}>
-            Undo clear
-          </Button>
-        )}
-      </section>
+          {lastChanges && (
+            <Button onClick={handleContentActionButtonClick('undo')}>
+              Undo clear
+            </Button>
+          )}
+        </section>
+      )}
 
       <section className={styles.section}>
         {sharedNote.isShared && (
