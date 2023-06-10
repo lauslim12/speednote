@@ -50,6 +50,8 @@ const Home = () => {
         <p className={styles.thanks}>
           Thank you so much for using Speednote! Made with ♥ in Tokyo, Japan
         </p>
+
+        <p className={styles.hash}>{process.env.VERSION}</p>
       </footer>
     </>
   );
