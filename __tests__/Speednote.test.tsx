@@ -63,18 +63,15 @@ beforeAll(async () => {
 });
 
 const assertEditor = () => {
-  const [title, content, clearContentButton, shareNoteButton, undoClearButton] =
-    [
-      screen.getByRole('textbox', { name: 'Note title' }),
-      screen.getByRole('textbox', { name: 'Note content' }),
-      screen.getByRole('button', { name: 'Clear content' }),
-      screen.getByRole('button', { name: 'Copy/share note link' }),
-      screen.queryByRole('button', { name: 'Undo clear' }), // This is not supposed to be there on the first render.
-    ];
+  const [title, content, shareNoteButton, undoClearButton] = [
+    screen.getByRole('textbox', { name: 'Note title' }),
+    screen.getByRole('textbox', { name: 'Note content' }),
+    screen.getByRole('button', { name: 'Copy/share note link' }),
+    screen.queryByRole('button', { name: 'Undo clear' }), // This is not supposed to be there on the first render.
+  ];
 
   expect(title).toBeInTheDocument();
   expect(content).toBeInTheDocument();
-  expect(clearContentButton).toBeInTheDocument();
   expect(shareNoteButton).toBeInTheDocument();
   expect(undoClearButton).not.toBeInTheDocument(); // This is not supposed to be in the DOM on the first render.
 
@@ -84,7 +81,7 @@ const assertEditor = () => {
 
   // `undoClearButton` is not returned because we'd rather do the query again when we want to test it. The current state
   // of the `undoClearButton` here will be stale by the time we wanted to do tests against it.
-  return { title, content, shareNoteButton, clearContentButton };
+  return { title, content, shareNoteButton };
 };
 
 const assertConfiguration = () => {
@@ -184,11 +181,14 @@ test('able to edit title and content', async () => {
 test('able to clear content and undo clear', async () => {
   const { user } = renderWithProviders();
 
-  const { content, clearContentButton } = assertEditor();
+  const { content } = assertEditor();
   await user.type(content, "Tears Don't Fall, Enchanted, Beautiful Trauma");
   expect(content).not.toHaveValue('');
   expect(content).toHaveValue("Tears Don't Fall, Enchanted, Beautiful Trauma");
 
+  const clearContentButton = screen.getByRole('button', {
+    name: 'Clear content',
+  });
   expect(clearContentButton).toBeEnabled();
   await user.click(clearContentButton);
   expect(content).toHaveValue('');
@@ -235,10 +235,20 @@ test('able to freeze notes and unfreeze them', async () => {
   await user.type(content, 'Hi there!');
   expect(content).toHaveValue('');
 
+  // The `Clear content` button should be disabled.
+  const clearContentButton = screen.getByRole('button', {
+    name: 'Clear content',
+  });
+  expect(clearContentButton).toBeInTheDocument();
+  expect(clearContentButton).toBeDisabled();
+
   // Unfreeze the note.
   expect(freezeNoteButton).toBeEnabled();
   await user.click(freezeNoteButton);
   expect(freezeNoteButton).toHaveAccessibleName('Freeze note');
+
+  // `Clear content` should not be disabled.
+  expect(clearContentButton).toBeEnabled();
 
   // Try to type, should be possible.
   expect(title).not.toHaveAttribute('readOnly');
