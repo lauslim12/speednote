@@ -19,10 +19,11 @@ All of the states / data that are inside of the application is **intentionally d
 - Blazingly fast. When you open the app, you can instantly type after the editor is mounted.
 - Utilization of Server Components and Client Components for maximum performance.
 - Configurable theme, it will respect the system's theme initially, but you can always change it.
-- Frozen notes. If you are afraid of accidentally deleting your note, just click on `Freeze note` to freeze your notes from changes.
+- Frozen notes. If you are afraid of accidentally deleting your note, just click on `Freeze note` to freeze your notes from changes. You cannot clear your notes if it's frozen, the button will be disabled.
 - Shareable notes. You can share your note to other people by clicking `Copy/share note link` button. It will automatically copy your note-specific link to your clipboard. The format of the shared note is `https://<SPEEDNOTE_URL>/?title=<BASE64_ENCODED_TEXT>&content=<BASE64_ENCODED_TEXT>`. You can just share the `title` or the `content`, and anything else will be ignored if there are unknown query parameters.
 - Complete with autosave function with reasonable debounce, so you don't have to worry about performance hits, lag, and data loss (stored in `localStorage`).
 - The storage that is used, `localStorage`, is [known to be one of the fastest storage system](https://stackoverflow.com/a/46779140/13980107) and [can save in less than a millisecond](https://gomakethings.com/how-fast-is-vanilla-js-localstorage/).
+- Versioned with the build date on the footer to know if the user is in the latest version of the application or not.
 - Lightweight. I intentionally did not use any heavy UI-frameworks and decided to just use a normal CSS, augmented with SCSS to make it featherweight.
 - Responsive to make sure that this application could be used in various environments without losing UX.
 - Works offline without any internet connection because this is a Progressive Web Application.
