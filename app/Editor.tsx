@@ -159,6 +159,7 @@ const Editor = () => {
       <section className={styles.section}>
         {sharedNote.isShared ? (
           <Input
+            id="note-title"
             aria-label="Note title"
             type="title"
             placeholder={sharedNote.title}
@@ -167,6 +168,7 @@ const Editor = () => {
           />
         ) : (
           <Input
+            id="note-title"
             aria-label="Note title"
             type="title"
             placeholder={'Enter a title'}
@@ -185,6 +187,7 @@ const Editor = () => {
       <section className={styles.section}>
         {sharedNote.isShared ? (
           <Input
+            id="note-content"
             aria-label="Note content"
             type="content"
             placeholder={sharedNote.content}
@@ -193,6 +196,7 @@ const Editor = () => {
           />
         ) : (
           <Input
+            id="note-content"
             aria-label="Note content"
             type="content"
             placeholder={
