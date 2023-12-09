@@ -1,22 +1,20 @@
 import { chromium, expect, type Page, test } from '@playwright/test';
 
 const getAndAssertEditor = async (page: Page) => {
-  const [title, content, shareNoteButton, undoClearButton] = [
+  const [title, content, undoClearButton] = [
     page.getByRole('textbox', { name: 'Note title' }),
     page.getByRole('textbox', { name: 'Note content' }),
-    page.getByRole('button', { name: 'Share note ' }),
     page.getByRole('button', { name: 'Undo clear' }),
   ];
 
   await expect(title).toBeVisible();
   await expect(content).toBeVisible();
-  await expect(shareNoteButton).toBeVisible();
   await expect(undoClearButton).not.toBeVisible();
 
   const inputs = page.getByRole('textbox');
   await expect(inputs).toHaveCount(2);
 
-  return { title, content, shareNoteButton };
+  return { title, content };
 };
 
 const getAndAssertConfiguration = async (page: Page) => {
@@ -215,7 +213,7 @@ test('able to copy and see a shared note properly', async () => {
   await renderPage(page);
 
   // Write something on the inputs.
-  const { title, content, shareNoteButton } = await getAndAssertEditor(page);
+  const { title, content } = await getAndAssertEditor(page);
   const freezeNoteButton = page.getByRole('button', { name: 'Freeze note' });
   await expect(freezeNoteButton).toBeVisible();
   await title.fill('Income');
@@ -226,10 +224,11 @@ test('able to copy and see a shared note properly', async () => {
   );
 
   // Click on the `Share note` button.
+  const shareNoteButton = page.getByRole('button', { name: 'Share note' });
   await shareNoteButton.click();
 
   // Slightly testing implementation details, make sure that the shared URL is correct. We don't
-  // care about the leading, parts just want to make sure that the URL query params are correct.
+  // care about the leading parts, we just want to make sure that the URL query params are correct.
   const expectedEncodedTitle = encodeURIComponent('SW5jb21l');
   const expectedEncodedContent = encodeURIComponent(
     'SSBmaW5pc2hlZCBhIHByb2plY3QgYW5kIHJlY2VpdmVkIDUwMDAgSlBZLg=='
@@ -242,11 +241,9 @@ test('able to copy and see a shared note properly', async () => {
   const newPage = await context.newPage();
   await renderPage(newPage, clipboardText as string);
 
-  const {
-    title: newTitle,
-    content: newContent,
-    shareNoteButton: newShareNoteButton,
-  } = await getAndAssertEditor(newPage);
+  const { title: newTitle, content: newContent } = await getAndAssertEditor(
+    newPage
+  );
   await expect(newTitle).toHaveValue('Income');
   await expect(newContent).toHaveValue(
     'I finished a project and received 5000 JPY.'
@@ -260,12 +257,12 @@ test('able to copy and see a shared note properly', async () => {
   await expect(newTitle).not.toBeEditable();
   await expect(newContent).not.toBeEditable();
 
-  // We should be able to 're-share' the note to another person with the same query parameters.
-  await newShareNoteButton.click();
-  const newClipboardText = await newPage.evaluate(
-    'navigator.clipboard.readText()'
-  );
-  expect(newClipboardText).toContain(expectedUrl);
+  // We should not be able to re-share the note to another person. The button should be hidden
+  // as it is very confusing (which one to share? Our note or the shared note? Communicating the message
+  // is difficult, so it's better to make it explicit and just do not make the button visible on a shared note).
+  await expect(
+    newPage.getByRole('button', { name: 'Share note' })
+  ).not.toBeVisible();
 
   // Edge-case: update the different page, the local storage should be synced - after the user decided to return
   // to the normal note, the user should see the normal note.
@@ -303,6 +300,11 @@ test('able to copy and see a shared note properly', async () => {
   await expect(rerenderedTitle).toHaveValue('Expense');
   await expect(rerenderedContent).toHaveValue('Hi there!');
   await expect(secondUpdatedFrozenButton).toBeVisible();
+
+  // Verify that the `Share note` button is visible again after returning to the `/` page.
+  await expect(
+    newPage.getByRole('button', { name: 'Share note' })
+  ).toBeVisible();
 
   // Close all sessions.
   await context.close();
