@@ -63,16 +63,14 @@ beforeAll(async () => {
 });
 
 const assertEditor = () => {
-  const [title, content, shareNoteButton, undoClearButton] = [
+  const [title, content, undoClearButton] = [
     screen.getByRole('textbox', { name: 'Note title' }),
     screen.getByRole('textbox', { name: 'Note content' }),
-    screen.getByRole('button', { name: 'Copy/share note link' }),
     screen.queryByRole('button', { name: 'Undo clear' }), // This is not supposed to be there on the first render.
   ];
 
   expect(title).toBeInTheDocument();
   expect(content).toBeInTheDocument();
-  expect(shareNoteButton).toBeInTheDocument();
   expect(undoClearButton).not.toBeInTheDocument(); // This is not supposed to be in the DOM on the first render.
 
   // We only want the title and the content and nothing else in the DOM.
@@ -81,7 +79,9 @@ const assertEditor = () => {
 
   // `undoClearButton` is not returned because we'd rather do the query again when we want to test it. The current state
   // of the `undoClearButton` here will be stale by the time we wanted to do tests against it.
-  return { title, content, shareNoteButton };
+  //
+  // For `shareNoteButton`, it will not be returned as well because it's not visible from the shared note component.
+  return { title, content };
 };
 
 const assertConfiguration = () => {
@@ -277,7 +277,7 @@ test('able to copy shared note properly', async () => {
   const { user } = renderWithProviders();
 
   // Write something on the inputs.
-  const { title, content, shareNoteButton } = assertEditor();
+  const { title, content } = assertEditor();
   await user.type(title, 'Income');
   expect(title).toHaveValue('Income');
   await user.type(content, 'I finished a project and received 5000 JPY.');
@@ -288,6 +288,9 @@ test('able to copy shared note properly', async () => {
   const expectedEncodedContent = encodeURIComponent(
     'SSBmaW5pc2hlZCBhIHByb2plY3QgYW5kIHJlY2VpdmVkIDUwMDAgSlBZLg=='
   );
+  const shareNoteButton = screen.getByRole('button', {
+    name: 'Copy/share note link',
+  });
   await user.click(shareNoteButton);
 
   const expectedUrl = `${window.location.href}?title=${expectedEncodedTitle}&content=${expectedEncodedContent}`;
@@ -320,9 +323,10 @@ test('able to see shared URL properly', async () => {
   await user.click(returnButton);
 
   // Should expect that the title and content have disappeared because we returned back to
-  // the page without the URL query parameters.
-  expect(title).toHaveValue('');
-  expect(content).toHaveValue('');
+  // the page without the URL query parameters. As this is a redirect, re-fetch the editor and see the results.
+  const { title: notSharedTitle, content: notSharedContent } = assertEditor();
+  expect(notSharedTitle).toHaveValue('');
+  expect(notSharedContent).toHaveValue('');
 
   const updatedFreezeNoteButton = screen.getByRole('button', {
     name: 'Freeze note',

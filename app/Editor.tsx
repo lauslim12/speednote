@@ -9,8 +9,83 @@ import Link from './Link';
 import { type Data } from './schema';
 import { useData } from './use-data';
 import { useDebounce } from './use-debounce';
-import { useSharedNoteQueryParams } from './use-shared-note';
+import { useSharedNote } from './use-shared-note';
 import { type DataService, useStorage } from './use-storage';
+
+/**
+ * The root of the editor. Will not fetch from the `localStorage` if observing
+ * a shared note. If observing a normal note, then the data will be loaded from
+ * the `localStorage`. This is done to achieve the Single-Responsibility Principle (SRP).
+ */
+const Editor = () => {
+  const sharedNote = useSharedNote();
+  if (sharedNote.isShared) {
+    return <SharedNote title={sharedNote.title} content={sharedNote.content} />;
+  }
+
+  return <NoteEditorRoot />;
+};
+
+type SharedNoteProps = {
+  title: string;
+  content: string;
+};
+
+const SharedNote = ({ title, content }: SharedNoteProps) => {
+  return (
+    <>
+      <section className={styles.section}>
+        <Input
+          id="note-title"
+          aria-label="Note title"
+          type="title"
+          placeholder={title}
+          value={title}
+          readOnly
+        />
+      </section>
+
+      <section className={styles.section}>
+        <Input
+          id="note-content"
+          aria-label="Note content"
+          type="content"
+          placeholder={content}
+          value={content}
+          readOnly
+        />
+      </section>
+
+      <section className={styles.section}>
+        <Link type="internal" href="/">
+          Return to your note
+        </Link>
+      </section>
+    </>
+  );
+};
+
+const NoteEditorRoot = () => {
+  const [initialValue, setInitialValue] = useState<Data | null>(null);
+  const storage = useStorage();
+
+  useEffect(() => {
+    setInitialValue(storage.getData());
+  }, [storage]);
+
+  if (initialValue === null) {
+    return null;
+  }
+
+  return <NoteEditor storage={storage} initialValue={initialValue} />;
+};
+
+type NoteEditorProps = {
+  storage: DataService;
+  initialValue: Data;
+};
+
+type Save = 'initial' | 'saving' | 'saved';
 
 const isValidTimestamp = (timestamp: string) => {
   return new Date(Number.parseInt(timestamp, 10)).getTime() > 0;
@@ -26,34 +101,7 @@ const displayReadableTime = (timestamp: string) => {
   }).format(parsedTimestamp);
 };
 
-/**
- * The root of the note editor, will initially load from the local storage before
- * mounting the content of the note editor with the data.
- */
-const Editor = () => {
-  const [initialValue, setInitialValue] = useState<Data | null>(null);
-  const storage = useStorage();
-
-  useEffect(() => {
-    setInitialValue(storage.getData());
-  }, [storage]);
-
-  if (initialValue === null) {
-    return null;
-  }
-
-  return <EditorContent storage={storage} initialValue={initialValue} />;
-};
-
-type EditorContentProps = {
-  storage: DataService;
-  initialValue: Data;
-};
-
-type Save = 'initial' | 'saving' | 'saved';
-
-const EditorContent = ({ storage, initialValue }: EditorContentProps) => {
-  const sharedNote = useSharedNoteQueryParams();
+const NoteEditor = ({ storage, initialValue }: NoteEditorProps) => {
   const { state, setTitle, setContent, setFrozen } = useData(initialValue);
   const [save, setSave] = useState<Save>('initial');
   const [lastChanges, setLastChanges] = useState('');
@@ -152,74 +200,44 @@ const EditorContent = ({ storage, initialValue }: EditorContentProps) => {
       </section>
 
       <section className={styles.section}>
-        {sharedNote.isShared ? (
-          <Input
-            id="note-title"
-            aria-label="Note title"
-            type="title"
-            placeholder={sharedNote.title}
-            value={sharedNote.title}
-            readOnly
-          />
-        ) : (
-          <Input
-            id="note-title"
-            aria-label="Note title"
-            type="title"
-            placeholder="Enter a title"
-            value={state.notes.title}
-            readOnly={state.notes.frozen}
-            onChange={handleChangeTitle}
-          />
-        )}
+        <Input
+          id="note-title"
+          aria-label="Note title"
+          type="title"
+          placeholder="Enter a title"
+          value={state.notes.title}
+          readOnly={state.notes.frozen}
+          onChange={handleChangeTitle}
+        />
       </section>
 
       <section className={styles.section}>
-        {sharedNote.isShared ? (
-          <Input
-            id="note-content"
-            aria-label="Note content"
-            type="content"
-            placeholder={sharedNote.content}
-            value={sharedNote.content}
-            readOnly
-          />
-        ) : (
-          <Input
-            id="note-content"
-            aria-label="Note content"
-            type="content"
-            placeholder={
-              "Start writing, your progress will be automatically stored in your machine's local storage"
-            }
-            value={state.notes.content}
-            readOnly={state.notes.frozen}
-            onChange={handleChangeContent}
-          />
-        )}
+        <Input
+          id="note-content"
+          aria-label="Note content"
+          type="content"
+          placeholder={
+            "Start writing, your progress will be automatically stored in your machine's local storage"
+          }
+          value={state.notes.content}
+          readOnly={state.notes.frozen}
+          onChange={handleChangeContent}
+        />
       </section>
 
-      {!sharedNote.isShared && (
-        <section className={styles.section}>
-          <Button onClick={handleClear} disabled={state.notes.frozen}>
-            Clear content
-          </Button>
+      <section className={styles.section}>
+        <Button onClick={handleClear} disabled={state.notes.frozen}>
+          Clear content
+        </Button>
 
-          <Button onClick={handleFreezeNote}>
-            {state.notes.frozen ? 'Unfreeze note' : 'Freeze note'}
-          </Button>
+        <Button onClick={handleFreezeNote}>
+          {state.notes.frozen ? 'Unfreeze note' : 'Freeze note'}
+        </Button>
 
-          {lastChanges && <Button onClick={handleUndo}>Undo clear</Button>}
-        </section>
-      )}
+        {lastChanges && <Button onClick={handleUndo}>Undo clear</Button>}
+      </section>
 
       <section className={styles.section}>
-        {sharedNote.isShared && (
-          <Link type="internal" href="/">
-            Return to your note
-          </Link>
-        )}
-
         <Button onClick={handleShareNote}>Copy/share note link</Button>
       </section>
     </>
