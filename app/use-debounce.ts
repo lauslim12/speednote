@@ -1,5 +1,5 @@
 import debounce from 'lodash.debounce';
-import { useEffect, useMemo, useRef } from 'react';
+import { useLayoutEffect, useMemo, useRef } from 'react';
 
 /**
  * A special React Hook to debounce an event. This will persist through re-renders and will
@@ -11,23 +11,23 @@ import { useEffect, useMemo, useRef } from 'react';
  * @param callback - Callback function to be debounced.
  * @returns Debounced callback.
  */
-const useDebounce = (callback: () => void) => {
-  const ref = useRef<(() => void) | null>(null);
 
-  useEffect(() => {
+export const useDebounce = (callback: (...args: any[]) => void) => {
+  const ref = useRef<((...args: any[]) => void) | null>(null);
+
+  // Only called in the initial render before browser finished
+  // painting the screen.
+  useLayoutEffect(() => {
     ref.current = callback;
-  }, [callback]);
+  });
 
   const debouncedCallback = useMemo(() => {
-    const fn = () => {
-      ref.current?.();
+    const fn = (...args: any[]) => {
+      ref.current?.(...args);
     };
 
-    // Debounces the callback for 100 ms.
-    return debounce(fn, 100);
+    return debounce((...args: any[]) => fn(...args), 100);
   }, []);
 
   return debouncedCallback;
 };
-
-export default useDebounce;

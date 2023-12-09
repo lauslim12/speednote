@@ -42,22 +42,28 @@ const stringAsCompatibleDate = () => {
 
 /**
  * Ensures that a string is a string that's compatible with the boolean literals `true` and
- * `false`, and falls back to `false` if its not.
+ * `false`, and falls back to `false` if its not. Coercion is not really efficient
+ * as it cannot validate the edge-cases.
  *
- * @returns String that is compatible with boolean literals.
+ * {@link https://github.com/colinhacks/zod/issues/1630}
+ * @returns Boolean values as the result of the transformation.
  */
 const stringAsCompatibleBoolean = () => {
   return z.preprocess((x) => {
     if (!x) {
-      return 'false';
+      return false;
     }
 
     if (x !== 'false' && x !== 'true') {
-      return 'false';
+      return false;
     }
 
-    return x;
-  }, z.union([z.literal('true'), z.literal('false')]));
+    if (x === 'false') {
+      return false;
+    }
+
+    return true;
+  }, z.boolean());
 };
 
 /**
@@ -103,27 +109,24 @@ export const sharedNoteSchema = z.discriminatedUnion('isShared', [
 export type SharedNote = z.infer<typeof sharedNoteSchema>;
 
 /**
- * Storage keys for the current implementation of `localStorage` key value pairs.
- */
-export const storageKey = Object.freeze({
-  CONFIG_FROZEN_KEY: 'frozen',
-  TITLE_STORAGE_KEY: 'title',
-  CONTENT_STORAGE_KEY: 'content',
-  LAST_UPDATED_STORAGE_KEY: 'last-updated',
-});
-
-/**
  * Application data schema.
  */
 export const dataSchema = z.object({
-  config: z.object({
-    frozen: stringAsCompatibleBoolean(),
-  }),
   notes: z.object({
     title: stringWithDefaultValue(),
     content: stringWithDefaultValue(),
     lastUpdated: stringAsCompatibleDate(),
+    frozen: stringAsCompatibleBoolean(),
   }),
 });
 
 export type Data = z.infer<typeof dataSchema>;
+
+export const DEFAULT_DATA: Data = {
+  notes: {
+    title: '',
+    content: '',
+    lastUpdated: '',
+    frozen: false,
+  },
+};

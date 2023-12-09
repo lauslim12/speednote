@@ -1,11 +1,10 @@
 'use client';
 
-import type { ChangeEvent, ComponentPropsWithoutRef } from 'react';
+import type { ComponentPropsWithoutRef } from 'react';
 import { memo } from 'react';
 import TextareaAutosize from 'react-textarea-autosize';
 
 import styles from './Input.module.scss';
-import { type Data } from './schema';
 
 // We want all of the base `textarea` props with the exception of `style` because we do not want to override the base style.
 //
@@ -15,12 +14,8 @@ type InputProps = {
   id: string;
   type: 'title' | 'content';
   value: string;
-  readOnly: Data['config']['frozen'];
-  onChange?: (e: ChangeEvent<HTMLTextAreaElement>) => void;
-} & Omit<
-  ComponentPropsWithoutRef<'textarea'>,
-  'id' | 'style' | 'value' | 'onChange' | 'readOnly'
->;
+  readOnly: boolean;
+} & Omit<ComponentPropsWithoutRef<'textarea'>, 'style'>;
 
 const Input = ({
   id,
@@ -33,7 +28,7 @@ const Input = ({
   const style = [
     styles.base,
     type === 'title' ? styles.title : styles.content,
-    readOnly === 'true' && styles.frozen, // Apply `readOnly` specific styles if it's set to `true`.
+    readOnly && styles.frozen, // Apply `readOnly` specific styles if it's set to `true`.
   ].join(' ');
 
   return (
@@ -42,8 +37,7 @@ const Input = ({
       className={style}
       onChange={onChange}
       value={value}
-      placeholder={rest.placeholder}
-      readOnly={readOnly === 'true'}
+      readOnly={readOnly}
       {...rest}
     />
   );

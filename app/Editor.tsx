@@ -1,21 +1,16 @@
 'use client';
 
-import { useSearchParams } from 'next/navigation';
-import { memo, useEffect, useState } from 'react';
+import { type ChangeEvent, memo, useEffect, useState } from 'react';
 
 import Button from './Button';
 import styles from './Editor.module.scss';
 import Input from './Input';
 import Link from './Link';
-import { sharedNoteSchema } from './schema';
-import {
-  getData,
-  storeContent,
-  storeFrozen,
-  storeLastUpdated,
-  storeTitle,
-} from './store';
-import useDebounce from './useDebounce';
+import { type Data } from './schema';
+import { useData } from './use-data';
+import { useDebounce } from './use-debounce';
+import { useSharedNoteQueryParams } from './use-shared-note';
+import { type DataService, useStorage } from './use-storage';
 
 const isValidTimestamp = (timestamp: string) => {
   return new Date(Number.parseInt(timestamp, 10)).getTime() > 0;
@@ -32,93 +27,85 @@ const displayReadableTime = (timestamp: string) => {
 };
 
 /**
- * Hook to process and return the query parameters inputted into the application by the user.
- *
- * @returns Shared note parsed data.
- */
-const useSharedNoteQueryParams = () => {
-  const searchParams = useSearchParams();
-  const sharedTitle = searchParams.get('title');
-  const sharedContent = searchParams.get('content');
-
-  const rawSharedData = {
-    isShared: [sharedTitle, sharedContent].some((val) => val !== null),
-    title: searchParams.get('title'),
-    content: searchParams.get('content'),
-  };
-
-  return sharedNoteSchema.parse(rawSharedData);
-};
-
-/**
- * The performant note editor. This is premature optimization, but all of the states are intentionally
- * declared as strings instead of a single state in the form of an object. It is much faster to write to strings
- * compared to assigning values to objects.
- *
- * @returns React Functional Component.
+ * The root of the note editor, will initially load from the local storage before
+ * mounting the content of the note editor with the data.
  */
 const Editor = () => {
-  const sharedNote = useSharedNoteQueryParams();
-  const { config, notes } = getData();
+  const [initialValue, setInitialValue] = useState<Data | null>(null);
+  const storage = useStorage();
 
-  const [title, setTitle] = useState(notes.title || '');
-  const [content, setContent] = useState(notes.content || '');
-  const [lastUpdated, setLastUpdated] = useState(notes.lastUpdated);
-  const [frozen, setFrozen] = useState(config.frozen);
+  useEffect(() => {
+    setInitialValue(storage.getData());
+  }, [storage]);
+
+  if (initialValue === null) {
+    return null;
+  }
+
+  return <EditorContent storage={storage} initialValue={initialValue} />;
+};
+
+type EditorContentProps = {
+  storage: DataService;
+  initialValue: Data;
+};
+
+type Save = 'initial' | 'saving' | 'saved';
+
+const EditorContent = ({ storage, initialValue }: EditorContentProps) => {
+  const sharedNote = useSharedNoteQueryParams();
+  const { state, setTitle, setContent, setFrozen } = useData(initialValue);
+  const [save, setSave] = useState<Save>('initial');
   const [lastChanges, setLastChanges] = useState('');
 
-  const debouncedChangeTitle = useDebounce(() => storeTitle(title));
-  const debouncedChangeContent = useDebounce(() => storeContent(content));
-  const debouncedChangeLastUpdated = useDebounce(() =>
-    storeLastUpdated(lastUpdated)
-  );
-
-  const handleContentActionButtonClick = (type: 'clear' | 'undo') => () => {
-    // Cancel all pending debounces.
-    debouncedChangeContent.cancel();
-    debouncedChangeLastUpdated.cancel();
-
-    // Store changes now without debouncing.
-    if (type === 'undo') {
-      setLastChanges('');
-      setContent(lastChanges);
-    } else {
-      setLastChanges(content);
-      setContent('');
-    }
-    setLastUpdated(Date.now().toString());
-
-    // Sync with store
-    storeLastUpdated(Date.now().toString());
-    storeContent(lastChanges);
+  // Special function to write to the data store.
+  const writeToStorage = () => {
+    storage.setData(state);
+    setSave('saved');
   };
 
-  const handleFreezeButtonClick = () => {
-    setFrozen((prevState) => {
-      debouncedChangeTitle.flush();
-      debouncedChangeContent.flush();
-      debouncedChangeLastUpdated.flush();
+  // Special React optimized debounce which will write to the
+  // `localStorage` once an interval has passed. This is to create
+  // an 'autosave-like' behavior.
+  const debouncedSave = useDebounce(() => writeToStorage());
 
-      const nextState = prevState === 'true' ? 'false' : 'true';
-      storeFrozen(nextState);
-
-      return nextState;
-    });
+  const handleChangeTitle = (e: ChangeEvent<HTMLTextAreaElement>) => {
+    setTitle(e.currentTarget.value, Date.now().toString());
+    setSave('saving');
+    debouncedSave();
   };
 
-  const handleShareButtonClick = () => {
-    // Invoke all debounces to make sure all of the states are in their final value.
-    debouncedChangeTitle.flush();
-    debouncedChangeContent.flush();
+  const handleChangeContent = (e: ChangeEvent<HTMLTextAreaElement>) => {
+    setContent(e.currentTarget.value, Date.now().toString());
+    setSave('saving');
+    debouncedSave();
+  };
+
+  const handleClear = () => {
+    // Cancel pending debounce, set relevant state, then store immediately.
+    debouncedSave.cancel();
+    setLastChanges(state.notes.content);
+    setContent('', Date.now().toString());
+    writeToStorage();
+  };
+
+  const handleFreezeNote = () => {
+    setFrozen(!state.notes.frozen);
+    writeToStorage();
+  };
+
+  const handleShareNote = () => {
+    // Invoke debounce to make sure all of the states are in their final value.
+    debouncedSave.flush();
 
     // Set new query parameters.
     const newSearchParams = new URLSearchParams();
-    if (title !== '') {
-      newSearchParams.set('title', window.btoa(title));
+    if (state.notes.title !== '') {
+      newSearchParams.set('title', window.btoa(state.notes.title));
     }
 
-    if (content !== '') {
-      newSearchParams.set('content', window.btoa(content));
+    if (state.notes.content !== '') {
+      newSearchParams.set('content', window.btoa(state.notes.content));
     }
 
     // Copy the URL the user's clipboard. I know that the `writeText` is supposed
@@ -129,31 +116,39 @@ const Editor = () => {
     navigator.clipboard.writeText(url);
   };
 
+  const handleUndo = () => {
+    // Cancel pending debounce, set the relevant state, then store immediately.
+    debouncedSave.cancel();
+    setLastChanges('');
+    setContent(lastChanges, Date.now().toString());
+    writeToStorage();
+  };
+
   useEffect(() => {
     const invokeDebounces = () => {
-      debouncedChangeTitle.flush();
-      debouncedChangeContent.flush();
-      debouncedChangeLastUpdated.flush();
+      debouncedSave.flush();
     };
 
     // Make sure to invoke the debounces when the component unmounts. This makes sense
     // because writing to `localStorage` is a synchronous operation, so this is better
     // than cancelling the debounces.
     return () => invokeDebounces();
-  }, [
-    debouncedChangeTitle,
-    debouncedChangeContent,
-    debouncedChangeLastUpdated,
-  ]);
+  }, [debouncedSave]);
 
   return (
     <>
       <section className={styles.section}>
-        {lastUpdated && isValidTimestamp(lastUpdated) ? (
+        {state.notes.lastUpdated &&
+        isValidTimestamp(state.notes.lastUpdated) ? (
           <time role="time" className={styles.time}>
-            Last updated at {displayReadableTime(lastUpdated)}
+            Last updated at {displayReadableTime(state.notes.lastUpdated)}.
           </time>
-        ) : null}
+        ) : null}{' '}
+        {save === 'initial' ? null : save === 'saving' ? (
+          <span className={styles.time}>Saving...</span>
+        ) : (
+          <span className={styles.time}>Saved.</span>
+        )}
       </section>
 
       <section className={styles.section}>
@@ -164,22 +159,17 @@ const Editor = () => {
             type="title"
             placeholder={sharedNote.title}
             value={sharedNote.title}
-            readOnly={'true'}
+            readOnly
           />
         ) : (
           <Input
             id="note-title"
             aria-label="Note title"
             type="title"
-            placeholder={'Enter a title'}
-            value={title}
-            readOnly={frozen}
-            onChange={({ currentTarget: { value } }) => {
-              setTitle(value);
-              setLastUpdated(Date.now().toString());
-              debouncedChangeTitle();
-              debouncedChangeLastUpdated();
-            }}
+            placeholder="Enter a title"
+            value={state.notes.title}
+            readOnly={state.notes.frozen}
+            onChange={handleChangeTitle}
           />
         )}
       </section>
@@ -192,7 +182,7 @@ const Editor = () => {
             type="content"
             placeholder={sharedNote.content}
             value={sharedNote.content}
-            readOnly={'true'}
+            readOnly
           />
         ) : (
           <Input
@@ -202,36 +192,24 @@ const Editor = () => {
             placeholder={
               "Start writing, your progress will be automatically stored in your machine's local storage"
             }
-            value={content}
-            readOnly={frozen}
-            onChange={({ currentTarget: { value } }) => {
-              setContent(value);
-              setLastUpdated(Date.now().toString());
-              debouncedChangeContent();
-              debouncedChangeLastUpdated();
-            }}
+            value={state.notes.content}
+            readOnly={state.notes.frozen}
+            onChange={handleChangeContent}
           />
         )}
       </section>
 
       {!sharedNote.isShared && (
         <section className={styles.section}>
-          <Button
-            onClick={handleContentActionButtonClick('clear')}
-            disabled={frozen === 'true'}
-          >
+          <Button onClick={handleClear} disabled={state.notes.frozen}>
             Clear content
           </Button>
 
-          <Button onClick={handleFreezeButtonClick}>
-            {frozen === 'true' ? 'Unfreeze note' : 'Freeze note'}
+          <Button onClick={handleFreezeNote}>
+            {state.notes.frozen ? 'Unfreeze note' : 'Freeze note'}
           </Button>
 
-          {lastChanges && (
-            <Button onClick={handleContentActionButtonClick('undo')}>
-              Undo clear
-            </Button>
-          )}
+          {lastChanges && <Button onClick={handleUndo}>Undo clear</Button>}
         </section>
       )}
 
@@ -242,7 +220,7 @@ const Editor = () => {
           </Link>
         )}
 
-        <Button onClick={handleShareButtonClick}>Copy/share note link</Button>
+        <Button onClick={handleShareNote}>Copy/share note link</Button>
       </section>
     </>
   );
