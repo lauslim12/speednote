@@ -67,10 +67,17 @@ test('renders and falls back properly with bad data', async ({ page }) => {
   // this makes sense because a normal user will not use `storageKey` variable to manipulate
   // the `localStorage`.
   await page.addInitScript(() => {
-    localStorage.setItem('frozen', 'not boolean');
-    localStorage.setItem('last-updated', 'an invalid date');
-    localStorage.setItem('content', '123');
-    localStorage.setItem('title', 'Title');
+    localStorage.setItem(
+      'speednote',
+      JSON.stringify({
+        notes: {
+          title: 'Title',
+          content: '123',
+          lastUpdated: 'an invalid date',
+          frozen: 'not boolean',
+        },
+      })
+    );
   });
 
   // Render the app, make sure it does not crash.

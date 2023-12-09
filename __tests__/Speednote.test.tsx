@@ -9,7 +9,7 @@ import * as routerMockComponents from 'next-router-mock';
 import { MemoryRouterProvider } from 'next-router-mock/MemoryRouterProvider';
 
 import Home from '@/app/page';
-import { storageKey } from '@/app/schema';
+import { STORAGE_KEY } from '@/app/use-storage';
 
 // Have to mock `matchMedia` because it's not supported in Jest yet. We only use `matches`, so for now we only
 // implement the `matches` property mock. Reference: https://jestjs.io/docs/manual-mocks#mocking-methods-which-are-not-implemented-in-jsdom.
@@ -138,10 +138,17 @@ test('renders properly', () => {
 
 test('renders and falls back properly with bad data', async () => {
   // Put all kinds of predefined local storage.
-  localStorage.setItem(storageKey.CONFIG_FROZEN_KEY, 'not boolean');
-  localStorage.setItem(storageKey.LAST_UPDATED_STORAGE_KEY, 'an invalid date');
-  localStorage.setItem(storageKey.CONTENT_STORAGE_KEY, '123');
-  localStorage.setItem(storageKey.TITLE_STORAGE_KEY, 'Title');
+  localStorage.setItem(
+    STORAGE_KEY,
+    JSON.stringify({
+      notes: {
+        title: 'Title',
+        content: '123',
+        lastUpdated: 'an invalid date',
+        frozen: 'not boolean',
+      },
+    })
+  );
 
   // Render the app, make sure it does not crash.
   renderWithProviders();
