@@ -8,7 +8,7 @@ import { sharedNoteSchema } from './schema';
  *
  * @returns Shared note parsed data.
  */
-export const useSharedNoteQueryParams = () => {
+export const useSharedNote = () => {
   const searchParams = useSearchParams();
   const sharedTitle = searchParams.get('title');
   const sharedContent = searchParams.get('content');
