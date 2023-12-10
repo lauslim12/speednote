@@ -103,8 +103,8 @@ const NoteEditor = ({ storage, initialValue }: NoteEditorProps) => {
   const [lastChanges, setLastChanges] = useState('');
 
   // Special function to write to the data store.
-  const writeToStorage = () => {
-    storage.setData(state);
+  const writeToStorage = (updatedData: Data) => {
+    storage.setData(updatedData);
     setSave('saved');
   };
 
