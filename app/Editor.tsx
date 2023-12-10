@@ -66,16 +66,12 @@ const SharedNote = ({ title, content }: SharedNoteProps) => {
 };
 
 const NoteEditorRoot = () => {
-  const [initialValue, setInitialValue] = useState<Data | null>(null);
   const storage = useStorage();
 
-  useEffect(() => {
-    setInitialValue(storage.getData());
-  }, [storage]);
-
-  if (initialValue === null) {
-    return null;
-  }
+  // Lazily initialize the initial value, this `useState` is identical
+  // to `useRef` and will not cause any subsequent re-renders.
+  // Ref: https://kentcdodds.com/blog/use-state-lazy-initialization-and-function-updates
+  const [initialValue] = useState(() => storage.getData());
 
   return <NoteEditor storage={storage} initialValue={initialValue} />;
 };
