@@ -406,3 +406,30 @@ test('able to handle unused query parameters', async ({ page }) => {
   await expect(title).toBeEditable();
   await expect(content).toBeEditable();
 });
+
+// 404 pages are only testable in integration environments as it's a server-side page.
+test('able to view and recover from 404 not found', async ({ page }) => {
+  await renderPage(page, '/404');
+
+  await expect(
+    page.getByRole('heading', { name: 'Page not found' })
+  ).toBeVisible();
+  await expect(
+    page.getByRole('heading', {
+      name: 'Could not find the requested resource',
+    })
+  ).toBeVisible();
+
+  const backToEditorLink = page.getByRole('link', { name: 'Back to editor' });
+  await expect(backToEditorLink).toBeVisible();
+  await backToEditorLink.click();
+
+  // Should be redirected back to the editor.
+  await page.waitForURL('/');
+  await expect(page).toHaveURL('/');
+
+  // Check the editor.
+  const { title, content } = await getAndAssertEditor(page);
+  await expect(title).toBeEditable();
+  await expect(content).toBeEditable();
+});
