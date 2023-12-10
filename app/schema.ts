@@ -54,15 +54,27 @@ const stringAsCompatibleBoolean = () => {
       return false;
     }
 
-    if (x !== 'false' && x !== 'true') {
-      return false;
+    // If it's a boolean then return as is, if it's a 'stringified'
+    // boolean, such as `false` or `true`, then return the appropriate values.
+    // If no match, return `false` as the default boolean value.
+    if (typeof x === 'boolean') {
+      return x;
     }
 
-    if (x === 'false') {
-      return false;
+    if (typeof x === 'string') {
+      switch (x) {
+        case 'true':
+          return true;
+
+        case 'false':
+          return false;
+
+        default:
+          return false;
+      }
     }
 
-    return true;
+    return false;
   }, z.boolean());
 };
 

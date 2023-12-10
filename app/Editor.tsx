@@ -66,16 +66,12 @@ const SharedNote = ({ title, content }: SharedNoteProps) => {
 };
 
 const NoteEditorRoot = () => {
-  const [initialValue, setInitialValue] = useState<Data | null>(null);
   const storage = useStorage();
 
-  useEffect(() => {
-    setInitialValue(storage.getData());
-  }, [storage]);
-
-  if (initialValue === null) {
-    return null;
-  }
+  // Lazily initialize the initial value, this `useState` is identical
+  // to `useRef` and will not cause any subsequent re-renders.
+  // Ref: https://kentcdodds.com/blog/use-state-lazy-initialization-and-function-updates
+  const [initialValue] = useState(() => storage.getData());
 
   return <NoteEditor storage={storage} initialValue={initialValue} />;
 };
@@ -107,15 +103,15 @@ const NoteEditor = ({ storage, initialValue }: NoteEditorProps) => {
   const [lastChanges, setLastChanges] = useState('');
 
   // Special function to write to the data store.
-  const writeToStorage = () => {
-    storage.setData(state);
+  const writeToStorage = (updatedData: Data) => {
+    storage.setData(updatedData);
     setSave('saved');
   };
 
   // Special React optimized debounce which will write to the
   // `localStorage` once an interval has passed. This is to create
   // an 'autosave-like' behavior.
-  const debouncedSave = useDebounce(() => writeToStorage());
+  const debouncedSave = useDebounce(() => writeToStorage(state));
 
   const handleChangeTitle = (e: ChangeEvent<HTMLTextAreaElement>) => {
     setTitle(e.currentTarget.value, Date.now().toString());
@@ -133,13 +129,21 @@ const NoteEditor = ({ storage, initialValue }: NoteEditorProps) => {
     // Cancel pending debounce, set relevant state, then store immediately.
     debouncedSave.cancel();
     setLastChanges(state.notes.content);
-    setContent('', Date.now().toString());
-    writeToStorage();
+
+    // Rather than using `useEffect` and worrying about potential side effects to subscribe
+    // to the `localStorage`, it's better to explicitly pass in the new values to the function
+    // to write the data. We cannot just rely on `state` because this is so fast that the
+    // `state` hasn't yet finished updating and we have already written the data to the storage.
+    const lastUpdated = Date.now().toString();
+    setContent('', lastUpdated);
+    writeToStorage({
+      notes: { ...state.notes, content: '', lastUpdated },
+    });
   };
 
-  const handleFreezeNote = () => {
-    setFrozen(!state.notes.frozen);
-    writeToStorage();
+  const handleFreezeNote = (nextValue: boolean) => () => {
+    setFrozen(nextValue);
+    writeToStorage({ notes: { ...state.notes, frozen: nextValue } });
   };
 
   const handleShareNote = () => {
@@ -168,8 +172,12 @@ const NoteEditor = ({ storage, initialValue }: NoteEditorProps) => {
     // Cancel pending debounce, set the relevant state, then store immediately.
     debouncedSave.cancel();
     setLastChanges('');
-    setContent(lastChanges, Date.now().toString());
-    writeToStorage();
+
+    const lastUpdated = Date.now().toString();
+    setContent(lastChanges, lastUpdated);
+    writeToStorage({
+      notes: { ...state.notes, content: lastChanges, lastUpdated },
+    });
   };
 
   useEffect(() => {
@@ -230,7 +238,7 @@ const NoteEditor = ({ storage, initialValue }: NoteEditorProps) => {
           Clear content
         </Button>
 
-        <Button onClick={handleFreezeNote}>
+        <Button onClick={handleFreezeNote(!state.notes.frozen)}>
           {state.notes.frozen ? 'Unfreeze note' : 'Freeze note'}
         </Button>
 

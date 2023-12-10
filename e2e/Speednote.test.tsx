@@ -132,6 +132,13 @@ test('able to clear content and undo clear', async ({ page }) => {
   await clearContentButton.click();
   await expect(content).toHaveValue('');
 
+  // Verify that the data is already stored in the `localStorage`. This is
+  // an implementation detail, but it's better to be safe: https://github.com/lauslim12/speednote/issues/31.
+  const clearedValue = await page.evaluate(() =>
+    localStorage.getItem('speednote')
+  );
+  expect(clearedValue).toContain('"content":""');
+
   // Query the `undoClearButton` again here.
   const undoClearButton = page.getByRole('button', { name: 'Undo clear' });
   await expect(undoClearButton).toBeVisible();
@@ -139,6 +146,14 @@ test('able to clear content and undo clear', async ({ page }) => {
   await undoClearButton.click();
   await expect(content).toHaveValue(
     "Tears Don't Fall, Enchanted, Beautiful Trauma"
+  );
+
+  // Verify the data is already stored in the `localStorage`.
+  const restoredValue = await page.evaluate(() =>
+    localStorage.getItem('speednote')
+  );
+  expect(restoredValue).toContain(
+    `"content":"Tears Don't Fall, Enchanted, Beautiful Trauma"`
   );
 });
 
@@ -169,6 +184,13 @@ test('able to freeze notes and unfreeze them', async ({ page }) => {
   await expect(title).not.toBeEditable();
   await expect(content).not.toBeEditable();
 
+  // Verify that the data is already stored in the `localStorage`. This is
+  // an implementation detail, but it's better to be safe: https://github.com/lauslim12/speednote/issues/31.
+  const frozenValue = await page.evaluate(() =>
+    localStorage.getItem('speednote')
+  );
+  expect(frozenValue).toContain('"frozen":true');
+
   // Try to type, but it also shouldn't be possible. That's why we try to use `force`.
   await title.fill('Hello', { force: true });
   await expect(title).toHaveValue('');
@@ -186,6 +208,12 @@ test('able to freeze notes and unfreeze them', async ({ page }) => {
   await expect(freezeNoteButton).toBeEnabled();
   await freezeNoteButton.click();
   await expect(freezeNoteButton).toHaveText('Freeze note');
+
+  // Verify that the data is already stored in the `localStorage`.
+  const unfrozenValue = await page.evaluate(() =>
+    localStorage.getItem('speednote')
+  );
+  expect(unfrozenValue).toContain('"frozen":false');
 
   // `Clear content` should not be disabled.
   await expect(clearContentButton).toBeEnabled();
