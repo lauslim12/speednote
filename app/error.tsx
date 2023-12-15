@@ -1,7 +1,5 @@
 'use client';
 
-import { memo } from 'react';
-
 import Button from './Button';
 import errorStyles from './error.module.scss';
 import Link from './Link';
@@ -42,4 +40,4 @@ const Error = ({ reset }: ErrorProps) => (
   </>
 );
 
-export default memo(Error);
+export default Error;

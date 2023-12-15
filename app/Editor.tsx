@@ -1,6 +1,6 @@
 'use client';
 
-import { type ChangeEvent, memo, useEffect, useState } from 'react';
+import { type ChangeEvent, useEffect, useState } from 'react';
 
 import Button from './Button';
 import styles from './Editor.module.scss';
@@ -252,4 +252,4 @@ const NoteEditor = ({ storage, initialValue }: NoteEditorProps) => {
   );
 };
 
-export default memo(Editor);
+export default Editor;

@@ -1,7 +1,6 @@
 'use client';
 
 import type { ComponentPropsWithoutRef } from 'react';
-import { memo } from 'react';
 import TextareaAutosize from 'react-textarea-autosize';
 
 import styles from './Input.module.scss';
@@ -43,4 +42,4 @@ const Input = ({
   );
 };
 
-export default memo(Input);
+export default Input;

@@ -1,6 +1,5 @@
 import NextLink, { type LinkProps as NextLinkProps } from 'next/link';
 import type { ComponentPropsWithoutRef, ReactNode } from 'react';
-import { memo } from 'react';
 
 import styles from './Link.module.scss';
 
@@ -39,4 +38,4 @@ const Link = ({ type, children, href, ...rest }: LinkProps) => {
   );
 };
 
-export default memo(Link);
+export default Link;
