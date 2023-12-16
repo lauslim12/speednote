@@ -47,7 +47,7 @@ const DataService = (storage: Storage): DataService => {
  * @returns The service provider.
  */
 export const useStorage = () => {
-  const [service] = useState(DataService(localStorage));
+  const [service] = useState(() => DataService(localStorage));
 
   return service;
 };

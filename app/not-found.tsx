@@ -1,5 +1,3 @@
-import { memo } from 'react';
-
 import errorStyles from './error.module.scss';
 import Link from './Link';
 import pageStyles from './page.module.scss';
@@ -35,4 +33,4 @@ const NotFound = () => (
   </>
 );
 
-export default memo(NotFound);
+export default NotFound;

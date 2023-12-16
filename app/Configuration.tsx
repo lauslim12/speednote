@@ -1,6 +1,6 @@
 'use client';
 
-import { memo, useState } from 'react';
+import { useState } from 'react';
 
 import Button from './Button';
 
@@ -32,4 +32,4 @@ const Configuration = () => {
   );
 };
 
-export default memo(Configuration);
+export default Configuration;

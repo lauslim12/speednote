@@ -1,5 +1,4 @@
 import type { ComponentPropsWithoutRef, ReactNode } from 'react';
-import { memo } from 'react';
 
 import styles from './Button.module.scss';
 
@@ -13,4 +12,4 @@ const Button = ({ children, ...rest }: ButtonProps) => (
   </button>
 );
 
-export default memo(Button);
+export default Button;
