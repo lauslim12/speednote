@@ -142,3 +142,10 @@ export const DEFAULT_DATA: Data = {
     frozen: false,
   },
 };
+
+export interface State extends Data {
+  setTitle: (title: string, lastUpdated: string) => void;
+  setContent: (content: string, lastUpdated: string) => void;
+  setFrozen: (frozen: boolean) => void;
+  resetContent: (lastUpdated: string) => void;
+}
