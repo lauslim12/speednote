@@ -36,39 +36,44 @@ type SharedNoteProps = {
   content: string;
 };
 
-const SharedNote = ({ title, content }: SharedNoteProps) => {
-  return (
-    <>
-      <section className={styles.section}>
-        <Input
-          id="note-title"
-          aria-label="Note title"
-          type="title"
-          placeholder={title}
-          value={title}
-          readOnly
-        />
-      </section>
+/**
+ * In this component, the `value` of the `title` and `content` has to be inserted into
+ * `decodeURIComponent` to prevent errors when sharing notes with Kanji characters, or any
+ * other characters outside of the `Latin1` range.
+ *
+ * {@link https://github.com/lauslim12/speednote/issues/36}
+ */
+const SharedNote = ({ title, content }: SharedNoteProps) => (
+  <>
+    <section className={styles.section}>
+      <Input
+        id="note-title"
+        aria-label="Note title"
+        type="title"
+        placeholder={title}
+        value={decodeURIComponent(title)}
+        readOnly
+      />
+    </section>
 
-      <section className={styles.section}>
-        <Input
-          id="note-content"
-          aria-label="Note content"
-          type="content"
-          placeholder={content}
-          value={content}
-          readOnly
-        />
-      </section>
+    <section className={styles.section}>
+      <Input
+        id="note-content"
+        aria-label="Note content"
+        type="content"
+        placeholder={content}
+        value={decodeURIComponent(content)}
+        readOnly
+      />
+    </section>
 
-      <section className={styles.section}>
-        <Link type="internal" href="/">
-          Return to your note
-        </Link>
-      </section>
-    </>
-  );
-};
+    <section className={styles.section}>
+      <Link type="internal" href="/">
+        Return to your note
+      </Link>
+    </section>
+  </>
+);
 
 const NoteEditorRoot = () => {
   const storage = useStorage();
@@ -226,14 +231,17 @@ const ExternalNoteAction = ({ onSave }: ActionBaseProps) => {
     // Save the note initially, so we're using the final state.
     onSave();
 
-    // Set new query parameters.
+    // Set new query parameters. Encode as URI component to prevent
+    // failure when sharing Kanji characters or any other characters
+    // that exist outside of the Latin1 range.
+    // Reference: https://github.com/lauslim12/speednote/issues/36.
     const newSearchParams = new URLSearchParams();
     if (title !== '') {
-      newSearchParams.set('title', window.btoa(title));
+      newSearchParams.set('title', window.btoa(encodeURIComponent(title)));
     }
 
     if (content !== '') {
-      newSearchParams.set('content', window.btoa(content));
+      newSearchParams.set('content', window.btoa(encodeURIComponent(content)));
     }
 
     // Copy the URL the user's clipboard. I know that the `writeText` is supposed
