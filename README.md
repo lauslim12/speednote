@@ -82,7 +82,7 @@ There are no dependencies (environment variables or the like), this is a standal
 
 ## Tests
 
-Because this project is still small, we can achieve a relatively high enough code coverage. There are two test libraries used in this project: React Testing Library and Playwright.
+Because this project is still small, we can achieve a relatively high enough code coverage. There are two test libraries used in this project: React Testing Library and Playwright. For some reason, if you run the Playwright tests locally without building (using the production version), the `404 Not Found` tests will fail. It is possible that this is caused by the development build.
 
 ```bash
 # To run RTL tests, do the commands below:
