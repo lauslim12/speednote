@@ -1,43 +1,38 @@
-import { useCallback, useState } from 'react';
+import { createContext, useContext } from 'react';
+import { createStore, useStore } from 'zustand';
 
-import { type Data } from './schema';
+import { type Data, type State } from './schema';
+
+export const createApplicationStore = (initialValue: Data) =>
+  createStore<State>()((set) => ({
+    ...initialValue,
+    setTitle: (title: string, lastUpdated: string) =>
+      set((state) => ({ notes: { ...state.notes, title, lastUpdated } })),
+    setContent: (content: string, lastUpdated: string) =>
+      set((state) => ({ notes: { ...state.notes, content, lastUpdated } })),
+    setFrozen: (frozen: boolean) =>
+      set((state) => ({ notes: { ...state.notes, frozen } })),
+    resetContent: (lastUpdated: string) =>
+      set((state) => ({ notes: { ...state.notes, content: '', lastUpdated } })),
+  }));
+
+type Context = ReturnType<typeof createApplicationStore> | null;
+
+export const ApplicationContext = createContext<Context>(null);
 
 /**
- * Custom hook which returns the required states for the notes and the application.
- * Only cares about the UI state, so these functions are pure and will not cause any
- * side-effects, such as writing to the database or any other.
+ * Custom hook which returns the Zustand store properties. This function only
+ * cares about the UI state, so these functions are pure and will not cause
+ * any side-effects, such as writing to the database or any other.
  *
- * {@link https://kentcdodds.com/blog/should-i-usestate-or-usereducer}
- * @param initialValue - Initial value of the state.
- * @returns The state and the relevant functions.
+ * @param selector - The Zustand store.
+ * @returns The relevant properties of the store that is selected.
  */
-export const useData = (initialValue: Data) => {
-  const [state, setState] = useState<Data>(initialValue);
+export const useData = <T>(selector: (state: State) => T): T => {
+  const store = useContext(ApplicationContext);
+  if (!store) {
+    throw new Error('Context Provider does not exist in the tree.');
+  }
 
-  const setTitle = useCallback((title: string, lastUpdated: string) => {
-    setState((prev) => ({
-      ...prev,
-      notes: { ...prev.notes, title, lastUpdated },
-    }));
-  }, []);
-
-  const setContent = useCallback((content: string, lastUpdated: string) => {
-    setState((prev) => ({
-      ...prev,
-      notes: { ...prev.notes, content, lastUpdated },
-    }));
-  }, []);
-
-  const setFrozen = useCallback((frozen: boolean) => {
-    setState((prev) => ({ ...prev, notes: { ...prev.notes, frozen } }));
-  }, []);
-
-  const reset = useCallback((lastUpdated: string) => {
-    setState((prev) => ({
-      ...prev,
-      notes: { title: '', content: '', frozen: false, lastUpdated },
-    }));
-  }, []);
-
-  return { state, setTitle, setContent, setFrozen, reset };
+  return useStore(store, selector);
 };

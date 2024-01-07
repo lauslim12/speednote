@@ -41,7 +41,8 @@
     "react-textarea-autosize": "8.4.0",
     "sass": "^1.62.1",
     "typescript": "5.0.4",
-    "zod": "^3.21.4"
+    "zod": "^3.21.4",
+    "zustand": "^4.4.7"
   },
   "eslintConfig": {
     "extends": "next/core-web-vitals",

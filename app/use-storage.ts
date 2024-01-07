@@ -27,8 +27,13 @@ const DataService = (storage: Storage): DataService => {
       return DEFAULT_DATA;
     }
 
-    // Will fallback to the default values on the schema-level.
-    return dataSchema.parse(JSON.parse(storageData));
+    // Will fallback to the default values if the user somehow disables JavaScript
+    // and fails `JSON.parse` and `JSON.stringify`.
+    try {
+      return dataSchema.parse(JSON.parse(storageData));
+    } catch {
+      return DEFAULT_DATA;
+    }
   };
 
   return { setData, getData };
