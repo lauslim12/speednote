@@ -1,13 +1,18 @@
 'use client';
 
-import { type ChangeEvent, useEffect, useState } from 'react';
+import { type ChangeEvent, useState } from 'react';
+import { type StoreApi } from 'zustand';
 
 import Button from './Button';
 import styles from './Editor.module.scss';
 import Input from './Input';
 import Link from './Link';
-import { type Data } from './schema';
-import { useData } from './use-data';
+import { type State } from './schema';
+import {
+  ApplicationContext,
+  createApplicationStore,
+  useData,
+} from './use-data';
 import { useDebounce } from './use-debounce';
 import { useSharedNote } from './use-shared-note';
 import { type DataService, useStorage } from './use-storage';
@@ -71,93 +76,164 @@ const NoteEditorRoot = () => {
   // Lazily initialize the initial value, this `useState` is identical
   // to `useRef` and will not cause any subsequent re-renders.
   // Ref: https://kentcdodds.com/blog/use-state-lazy-initialization-and-function-updates
-  const [initialValue] = useState(() => storage.getData());
+  const [store] = useState(() => createApplicationStore(storage.getData()));
 
-  return <NoteEditor storage={storage} initialValue={initialValue} />;
+  return <NoteEditor storage={storage} store={store} />;
 };
 
 type NoteEditorProps = {
   storage: DataService;
-  initialValue: Data;
+  store: StoreApi<State>;
 };
 
 type Save = 'initial' | 'saving' | 'saved';
 
-const isValidTimestamp = (timestamp: string) => {
-  return new Date(Number.parseInt(timestamp, 10)).getTime() > 0;
+type MetadataProps = {
+  save: Save;
 };
 
-const displayReadableTime = (timestamp: string) => {
-  // Falls back to the browser's settings.
-  const parsedTimestamp = new Date(Number.parseInt(timestamp, 10));
-  return Intl.DateTimeFormat(undefined, {
-    dateStyle: 'full',
-    timeStyle: 'full',
-    hourCycle: 'h23',
-  }).format(parsedTimestamp);
+const Metadata = ({ save }: MetadataProps) => {
+  const lastUpdated = useData((state) => state.notes.lastUpdated);
+  const timestamp = new Date(Number.parseInt(lastUpdated, 10));
+  const formattedTimestamp =
+    timestamp.getTime() > 0
+      ? {
+          valid: true,
+          value: Intl.DateTimeFormat(undefined, {
+            dateStyle: 'full',
+            timeStyle: 'full',
+            hourCycle: 'h23',
+          }).format(timestamp),
+        }
+      : { valid: false };
+
+  return (
+    <>
+      {formattedTimestamp.valid ? (
+        <time role="time" className={styles.time}>
+          Last updated at {formattedTimestamp.value}.
+        </time>
+      ) : null}
+      {save === 'initial' ? null : save === 'saving' ? (
+        <span className={styles.autosave}>Saving...</span>
+      ) : (
+        <span className={styles.autosave}>Saved.</span>
+      )}
+    </>
+  );
 };
 
-const NoteEditor = ({ storage, initialValue }: NoteEditorProps) => {
-  const { state, setTitle, setContent, setFrozen } = useData(initialValue);
-  const [save, setSave] = useState<Save>('initial');
-  const [lastChanges, setLastChanges] = useState('');
+type EditorBaseProps = {
+  onChange: () => void;
+};
 
-  // Special function to write to the data store.
-  const writeToStorage = (updatedData: Data) => {
-    storage.setData(updatedData);
-    setSave('saved');
-  };
-
-  // Special React optimized debounce which will write to the
-  // `localStorage` once an interval has passed. This is to create
-  // an 'autosave-like' behavior.
-  const debouncedSave = useDebounce(() => writeToStorage(state));
+const TitleEditor = ({ onChange }: EditorBaseProps) => {
+  const title = useData((state) => state.notes.title);
+  const frozen = useData((state) => state.notes.frozen);
+  const setTitle = useData((state) => state.setTitle);
 
   const handleChangeTitle = (e: ChangeEvent<HTMLTextAreaElement>) => {
     setTitle(e.currentTarget.value, Date.now().toString());
-    setSave('saving');
-    debouncedSave();
+    onChange();
   };
+
+  return (
+    <Input
+      id="note-title"
+      aria-label="Note title"
+      type="title"
+      placeholder="Enter a title"
+      value={title}
+      readOnly={frozen}
+      onChange={handleChangeTitle}
+    />
+  );
+};
+
+const ContentEditor = ({ onChange }: EditorBaseProps) => {
+  const content = useData((state) => state.notes.content);
+  const frozen = useData((state) => state.notes.frozen);
+  const setContent = useData((state) => state.setContent);
 
   const handleChangeContent = (e: ChangeEvent<HTMLTextAreaElement>) => {
     setContent(e.currentTarget.value, Date.now().toString());
-    setSave('saving');
-    debouncedSave();
+    onChange();
   };
 
-  const handleClear = () => {
-    // Cancel pending debounce, set relevant state, then store immediately.
-    debouncedSave.cancel();
-    setLastChanges(state.notes.content);
+  return (
+    <Input
+      id="note-content"
+      aria-label="Note content"
+      type="content"
+      placeholder={
+        "Start writing, your progress will be automatically stored in your machine's local storage"
+      }
+      value={content}
+      readOnly={frozen}
+      onChange={handleChangeContent}
+    />
+  );
+};
 
-    // Rather than using `useEffect` and worrying about potential side effects to subscribe
-    // to the `localStorage`, it's better to explicitly pass in the new values to the function
-    // to write the data. We cannot just rely on `state` because this is so fast that the
-    // `state` hasn't yet finished updating and we have already written the data to the storage.
-    const lastUpdated = Date.now().toString();
-    setContent('', lastUpdated);
-    writeToStorage({
-      notes: { ...state.notes, content: '', lastUpdated },
-    });
+type ActionBaseProps = {
+  onSave: () => void;
+};
+
+const InternalNoteAction = ({ onSave }: ActionBaseProps) => {
+  const content = useData((state) => state.notes.content);
+  const frozen = useData((state) => state.notes.frozen);
+  const setContent = useData((state) => state.setContent);
+  const setFrozen = useData((state) => state.setFrozen);
+  const [lastChanges, setLastChanges] = useState('');
+
+  const handleClear = () => {
+    setLastChanges(content);
+    setContent('', Date.now().toString());
+    onSave();
   };
 
   const handleFreezeNote = (nextValue: boolean) => () => {
     setFrozen(nextValue);
-    writeToStorage({ notes: { ...state.notes, frozen: nextValue } });
+    onSave();
   };
 
+  const handleUndo = () => {
+    setLastChanges('');
+    setContent(lastChanges, Date.now().toString());
+    onSave();
+  };
+
+  return (
+    <>
+      <Button onClick={handleClear} disabled={frozen}>
+        Clear content
+      </Button>
+
+      <Button onClick={handleFreezeNote(!frozen)}>
+        {frozen ? 'Unfreeze note' : 'Freeze note'}
+      </Button>
+
+      {lastChanges && <Button onClick={handleUndo}>Undo clear</Button>}
+    </>
+  );
+};
+
+const ExternalNoteAction = ({ onSave }: ActionBaseProps) => {
+  const title = useData((state) => state.notes.title);
+  const content = useData((state) => state.notes.content);
+
   const handleShareNote = () => {
-    // Invoke debounce to make sure all of the states are in their final value.
-    debouncedSave.flush();
+    // Save the note initially, so we're using the final state.
+    onSave();
 
     // Set new query parameters.
     const newSearchParams = new URLSearchParams();
-    if (state.notes.title !== '') {
-      newSearchParams.set('title', window.btoa(state.notes.title));
+    if (title !== '') {
+      newSearchParams.set('title', window.btoa(title));
     }
 
-    if (state.notes.content !== '') {
-      newSearchParams.set('content', window.btoa(state.notes.content));
+    if (content !== '') {
+      newSearchParams.set('content', window.btoa(content));
     }
 
     // Copy the URL the user's clipboard. I know that the `writeText` is supposed
@@ -168,87 +244,53 @@ const NoteEditor = ({ storage, initialValue }: NoteEditorProps) => {
     navigator.clipboard.writeText(url);
   };
 
-  const handleUndo = () => {
-    // Cancel pending debounce, set the relevant state, then store immediately.
-    debouncedSave.cancel();
-    setLastChanges('');
+  return <Button onClick={handleShareNote}>Copy/share note link</Button>;
+};
 
-    const lastUpdated = Date.now().toString();
-    setContent(lastChanges, lastUpdated);
-    writeToStorage({
-      notes: { ...state.notes, content: lastChanges, lastUpdated },
-    });
+const NoteEditor = ({ storage, store }: NoteEditorProps) => {
+  const [save, setSave] = useState<Save>('initial');
+
+  const debouncedSave = useDebounce(() => {
+    storage.setData(store.getState());
+    setSave('saved');
+  });
+
+  const handleChangeEditor = () => {
+    setSave('saving');
+    debouncedSave();
   };
 
-  useEffect(() => {
-    const invokeDebounces = () => {
-      debouncedSave.flush();
-    };
-
-    // Make sure to invoke the debounces when the component unmounts. This makes sense
-    // because writing to `localStorage` is a synchronous operation, so this is better
-    // than cancelling the debounces.
-    return () => invokeDebounces();
-  }, [debouncedSave]);
+  const handleNoteActionSave = () => {
+    // Flush/execute the debounce and get the latest state. In the storage setter function call,
+    // the get state call is reactive as it's using Zustand, so it will not 'lag' and
+    // fail to save like the problem that happened in https://github.com/lauslim12/speednote/issues/31.
+    debouncedSave.flush();
+    storage.setData(store.getState());
+    setSave('saved');
+  };
 
   return (
-    <>
+    <ApplicationContext.Provider value={store}>
       <section className={styles.section}>
-        {state.notes.lastUpdated &&
-        isValidTimestamp(state.notes.lastUpdated) ? (
-          <time role="time" className={styles.time}>
-            Last updated at {displayReadableTime(state.notes.lastUpdated)}.
-          </time>
-        ) : null}{' '}
-        {save === 'initial' ? null : save === 'saving' ? (
-          <span className={styles.time}>Saving...</span>
-        ) : (
-          <span className={styles.time}>Saved.</span>
-        )}
+        <Metadata save={save} />
       </section>
 
       <section className={styles.section}>
-        <Input
-          id="note-title"
-          aria-label="Note title"
-          type="title"
-          placeholder="Enter a title"
-          value={state.notes.title}
-          readOnly={state.notes.frozen}
-          onChange={handleChangeTitle}
-        />
+        <TitleEditor onChange={handleChangeEditor} />
       </section>
 
       <section className={styles.section}>
-        <Input
-          id="note-content"
-          aria-label="Note content"
-          type="content"
-          placeholder={
-            "Start writing, your progress will be automatically stored in your machine's local storage"
-          }
-          value={state.notes.content}
-          readOnly={state.notes.frozen}
-          onChange={handleChangeContent}
-        />
+        <ContentEditor onChange={handleChangeEditor} />
       </section>
 
       <section className={styles.section}>
-        <Button onClick={handleClear} disabled={state.notes.frozen}>
-          Clear content
-        </Button>
-
-        <Button onClick={handleFreezeNote(!state.notes.frozen)}>
-          {state.notes.frozen ? 'Unfreeze note' : 'Freeze note'}
-        </Button>
-
-        {lastChanges && <Button onClick={handleUndo}>Undo clear</Button>}
+        <InternalNoteAction onSave={handleNoteActionSave} />
       </section>
 
       <section className={styles.section}>
-        <Button onClick={handleShareNote}>Copy/share note link</Button>
+        <ExternalNoteAction onSave={handleNoteActionSave} />
       </section>
-    </>
+    </ApplicationContext.Provider>
   );
 };
 
