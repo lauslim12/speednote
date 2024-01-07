@@ -229,115 +229,145 @@ test('able to freeze notes and unfreeze them', async ({ page }) => {
   );
 });
 
-test('able to copy and see a shared note properly', async () => {
-  // We need to use a new browser context to allow permission to write to clipboard in the headless Playwright test.
-  const browser = await chromium.launch();
-  const context = await browser.newContext({
-    permissions: ['clipboard-write', 'clipboard-read'],
+const copyAndSeeSharedNoteTestCases = [
+  {
+    constraint: 'with normal characters',
+    inputTitle: 'Income',
+    inputContent: 'I finished a project and received 5000 JPY.',
+    expectedEncodedTitle: 'SW5jb21l',
+    expectedEncodedContent:
+      'SSUyMGZpbmlzaGVkJTIwYSUyMHByb2plY3QlMjBhbmQlMjByZWNlaXZlZCUyMDUwMDAlMjBKUFku',
+  },
+  {
+    constraint: 'with japanese characters',
+    inputTitle: 'ノートです！',
+    inputContent: 'このノートは見本です。',
+    expectedEncodedTitle:
+      'JUUzJTgzJThFJUUzJTgzJUJDJUUzJTgzJTg4JUUzJTgxJUE3JUUzJTgxJTk5JUVGJUJDJTgx',
+    expectedEncodedContent:
+      'JUUzJTgxJTkzJUUzJTgxJUFFJUUzJTgzJThFJUUzJTgzJUJDJUUzJTgzJTg4JUUzJTgxJUFGJUU4JUE2JThCJUU2JTlDJUFDJUUzJTgxJUE3JUUzJTgxJTk5JUUzJTgwJTgy',
+  },
+  {
+    constraint: 'with chinese characters',
+    inputTitle: '你好！',
+    inputContent: '这是一张纸条样本。',
+    expectedEncodedTitle: 'JUU0JUJEJUEwJUU1JUE1JUJEJUVGJUJDJTgx',
+    expectedEncodedContent:
+      'JUU4JUJGJTk5JUU2JTk4JUFGJUU0JUI4JTgwJUU1JUJDJUEwJUU3JUJBJUI4JUU2JTlEJUExJUU2JUEwJUI3JUU2JTlDJUFDJUUzJTgwJTgy',
+  },
+];
+
+for (const {
+  constraint,
+  inputTitle,
+  inputContent,
+  expectedEncodedTitle,
+  expectedEncodedContent,
+} of copyAndSeeSharedNoteTestCases) {
+  test(`able to copy and see a shared note properly ${constraint}`, async () => {
+    // We need to use a new browser context to allow permission to write to clipboard in the headless Playwright test.
+    const browser = await chromium.launch();
+    const context = await browser.newContext({
+      permissions: ['clipboard-write', 'clipboard-read'],
+    });
+    const page = await context.newPage();
+
+    // Render the app with our new browser context.
+    await renderPage(page);
+
+    // Write something on the inputs.
+    const { title, content } = await getAndAssertEditor(page);
+    const freezeNoteButton = page.getByRole('button', { name: 'Freeze note' });
+    await expect(freezeNoteButton).toBeVisible();
+    await title.fill(inputTitle);
+    await expect(title).toHaveValue(inputTitle);
+    await content.fill(inputContent);
+    await expect(content).toHaveValue(inputContent);
+
+    // Click on the `Share note` button.
+    const shareNoteButton = page.getByRole('button', { name: 'Share note' });
+    await shareNoteButton.click();
+
+    // Slightly testing implementation details, make sure that the shared URL is correct. We don't
+    // care about the leading parts, we just want to make sure that the URL query params are correct.
+    const clipboardText = await page.evaluate('navigator.clipboard.readText()');
+    const expectedUrl = `?title=${expectedEncodedTitle}&content=${expectedEncodedContent}`;
+    expect(clipboardText).toContain(expectedUrl);
+
+    // Summon a new page based on the copied URL query parameters.
+    const newPage = await context.newPage();
+    await renderPage(newPage, clipboardText as string);
+
+    const { title: newTitle, content: newContent } = await getAndAssertEditor(
+      newPage
+    );
+    await expect(newTitle).toHaveValue(inputTitle);
+    await expect(newContent).toHaveValue(inputContent);
+
+    // Freeze note button should not be here, and all of the inputs should be read only.
+    const newFreezeNoteButton = newPage.getByRole('button', {
+      name: 'Freeze note',
+    });
+    await expect(newFreezeNoteButton).not.toBeVisible();
+    await expect(newTitle).not.toBeEditable();
+    await expect(newContent).not.toBeEditable();
+
+    // We should not be able to re-share the note to another person. The button should be hidden
+    // as it is very confusing (which one to share? Our note or the shared note? Communicating the message
+    // is difficult, so it's better to make it explicit and just do not make the button visible on a shared note).
+    await expect(
+      newPage.getByRole('button', { name: 'Share note' })
+    ).not.toBeVisible();
+
+    // Edge-case: update the different page, the local storage should be synced - after the user decided to return
+    // to the normal note, the user should see the normal note.
+    await title.clear();
+    await title.fill('Expense');
+    await expect(title).toHaveValue('Expense');
+    await content.clear();
+    await content.fill('Hi there!');
+    await expect(content).toHaveValue('Hi there!');
+    await freezeNoteButton.click();
+    await expect(title).not.toBeEditable();
+    await expect(content).not.toBeEditable();
+
+    // Return to the normal, ensure that components and the freeze button are here.
+    const returnButton = newPage.getByRole('link', {
+      name: 'Return to your note',
+    });
+    await expect(returnButton).toBeVisible();
+    await returnButton.click();
+
+    // Should re-render again, validate again that all have rendered successfully.
+    await newPage.waitForURL('/');
+    await expect(newPage).toHaveURL('/');
+
+    // Edge-case: make sure that once we get back to the normal page, the local storage is synced properly and the
+    // change is using the latest one after we have updated the inputs after opening the link from the clipboard.
+    const rerenderedTitle = newPage.getByRole('textbox', {
+      name: 'Note title',
+    });
+    const rerenderedContent = newPage.getByRole('textbox', {
+      name: 'Note content',
+    });
+    const secondUpdatedFrozenButton = newPage.getByRole('button', {
+      name: 'Freeze note',
+    });
+
+    await expect(rerenderedTitle).toHaveValue('Expense');
+    await expect(rerenderedContent).toHaveValue('Hi there!');
+    await expect(secondUpdatedFrozenButton).toBeVisible();
+
+    // Verify that the `Share note` button is visible again after returning to the `/` page.
+    await expect(
+      newPage.getByRole('button', { name: 'Share note' })
+    ).toBeVisible();
+
+    // Close all sessions.
+    await context.close();
+    await browser.close();
   });
-  const page = await context.newPage();
-
-  // Render the app with our new browser context.
-  await renderPage(page);
-
-  // Write something on the inputs.
-  const { title, content } = await getAndAssertEditor(page);
-  const freezeNoteButton = page.getByRole('button', { name: 'Freeze note' });
-  await expect(freezeNoteButton).toBeVisible();
-  await title.fill('Income');
-  await expect(title).toHaveValue('Income');
-  await content.fill('I finished a project and received 5000 JPY.');
-  await expect(content).toHaveValue(
-    'I finished a project and received 5000 JPY.'
-  );
-
-  // Click on the `Share note` button.
-  const shareNoteButton = page.getByRole('button', { name: 'Share note' });
-  await shareNoteButton.click();
-
-  // Slightly testing implementation details, make sure that the shared URL is correct. We don't
-  // care about the leading parts, we just want to make sure that the URL query params are correct.
-  const expectedEncodedTitle = encodeURIComponent('SW5jb21l');
-  const expectedEncodedContent = encodeURIComponent(
-    'SSBmaW5pc2hlZCBhIHByb2plY3QgYW5kIHJlY2VpdmVkIDUwMDAgSlBZLg=='
-  );
-  const clipboardText = await page.evaluate('navigator.clipboard.readText()');
-  const expectedUrl = `?title=${expectedEncodedTitle}&content=${expectedEncodedContent}`;
-  expect(clipboardText).toContain(expectedUrl);
-
-  // Summon a new page based on the copied URL query parameters.
-  const newPage = await context.newPage();
-  await renderPage(newPage, clipboardText as string);
-
-  const { title: newTitle, content: newContent } = await getAndAssertEditor(
-    newPage
-  );
-  await expect(newTitle).toHaveValue('Income');
-  await expect(newContent).toHaveValue(
-    'I finished a project and received 5000 JPY.'
-  );
-
-  // Freeze note button should not be here, and all of the inputs should be read only.
-  const newFreezeNoteButton = newPage.getByRole('button', {
-    name: 'Freeze note',
-  });
-  await expect(newFreezeNoteButton).not.toBeVisible();
-  await expect(newTitle).not.toBeEditable();
-  await expect(newContent).not.toBeEditable();
-
-  // We should not be able to re-share the note to another person. The button should be hidden
-  // as it is very confusing (which one to share? Our note or the shared note? Communicating the message
-  // is difficult, so it's better to make it explicit and just do not make the button visible on a shared note).
-  await expect(
-    newPage.getByRole('button', { name: 'Share note' })
-  ).not.toBeVisible();
-
-  // Edge-case: update the different page, the local storage should be synced - after the user decided to return
-  // to the normal note, the user should see the normal note.
-  await title.clear();
-  await title.fill('Expense');
-  await expect(title).toHaveValue('Expense');
-  await content.clear();
-  await content.fill('Hi there!');
-  await expect(content).toHaveValue('Hi there!');
-  await freezeNoteButton.click();
-  await expect(title).not.toBeEditable();
-  await expect(content).not.toBeEditable();
-
-  // Return to the normal, ensure that components and the freeze button are here.
-  const returnButton = newPage.getByRole('link', {
-    name: 'Return to your note',
-  });
-  await expect(returnButton).toBeVisible();
-  await returnButton.click();
-
-  // Should re-render again, validate again that all have rendered successfully.
-  await newPage.waitForURL('/');
-  await expect(newPage).toHaveURL('/');
-
-  // Edge-case: make sure that once we get back to the normal page, the local storage is synced properly and the
-  // change is using the latest one after we have updated the inputs after opening the link from the clipboard.
-  const rerenderedTitle = newPage.getByRole('textbox', { name: 'Note title' });
-  const rerenderedContent = newPage.getByRole('textbox', {
-    name: 'Note content',
-  });
-  const secondUpdatedFrozenButton = newPage.getByRole('button', {
-    name: 'Freeze note',
-  });
-
-  await expect(rerenderedTitle).toHaveValue('Expense');
-  await expect(rerenderedContent).toHaveValue('Hi there!');
-  await expect(secondUpdatedFrozenButton).toBeVisible();
-
-  // Verify that the `Share note` button is visible again after returning to the `/` page.
-  await expect(
-    newPage.getByRole('button', { name: 'Share note' })
-  ).toBeVisible();
-
-  // Close all sessions.
-  await context.close();
-  await browser.close();
-});
+}
 
 // Playwright doesn't support Jest's `test.each`, so we have to use this looping workaround.
 const invalidFormatUrlTestCases = [
@@ -352,6 +382,18 @@ const invalidFormatUrlTestCases = [
     url: '?content=QmVhdXRpZnVsIFRyYXVtYQ==',
     expectedTitle: 'No title in the shared note',
     expectedContent: 'Beautiful Trauma',
+  },
+  {
+    name: 'valid title and content, japanese characters',
+    url: '?title=JUUzJTgzJThFJUUzJTgzJUJDJUUzJTgzJTg4JUUzJTgxJUE3JUUzJTgxJTk5JUVGJUJDJTgx&content=JUUzJTgxJTkzJUUzJTgxJUFFJUUzJTgzJThFJUUzJTgzJUJDJUUzJTgzJTg4JUUzJTgxJUFGJUU4JUE2JThCJUU2JTlDJUFDJUUzJTgxJUE3JUUzJTgxJTk5JUUzJTgwJTgy',
+    expectedTitle: 'ノートです！',
+    expectedContent: 'このノートは見本です。',
+  },
+  {
+    name: 'valid title and content, chinese characters',
+    url: '?title=JUU0JUJEJUEwJUU1JUE1JUJEJUVGJUJDJTgx&content=JUU4JUJGJTk5JUU2JTk4JUFGJUU0JUI4JTgwJUU1JUJDJUEwJUU3JUJBJUI4JUU2JTlEJUExJUU2JUEwJUI3JUU2JTlDJUFDJUUzJTgwJTgy',
+    expectedTitle: '你好！',
+    expectedContent: '这是一张纸条样本。',
   },
   {
     name: 'invalid title and content',

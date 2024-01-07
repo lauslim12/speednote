@@ -266,37 +266,67 @@ test('able to freeze notes and unfreeze them', async () => {
   expect(content).toHaveValue('Hi there, I just wanted to type this note.');
 });
 
-test('able to copy shared note properly', async () => {
-  // Because it's important to ensure that the title and the content is encoded properly,
-  // I decided to spy on this function to make sure that it doesn't do anything unexpected.
-  const mockWriteText = jest
-    .spyOn(window.navigator.clipboard, 'writeText')
-    .mockImplementation();
+test.each([
+  {
+    constraint: 'with normal characters',
+    inputTitle: 'Income',
+    inputContent: 'I finished a project and received 5000 JPY.',
+    expectedEncodedTitle: 'SW5jb21l',
+    expectedEncodedContent:
+      'SSUyMGZpbmlzaGVkJTIwYSUyMHByb2plY3QlMjBhbmQlMjByZWNlaXZlZCUyMDUwMDAlMjBKUFku',
+  },
+  {
+    constraint: 'with japanese characters',
+    inputTitle: 'ノートです！',
+    inputContent: 'このノートは見本です。',
+    expectedEncodedTitle:
+      'JUUzJTgzJThFJUUzJTgzJUJDJUUzJTgzJTg4JUUzJTgxJUE3JUUzJTgxJTk5JUVGJUJDJTgx',
+    expectedEncodedContent:
+      'JUUzJTgxJTkzJUUzJTgxJUFFJUUzJTgzJThFJUUzJTgzJUJDJUUzJTgzJTg4JUUzJTgxJUFGJUU4JUE2JThCJUU2JTlDJUFDJUUzJTgxJUE3JUUzJTgxJTk5JUUzJTgwJTgy',
+  },
+  {
+    constraint: 'with chinese characters',
+    inputTitle: '你好！',
+    inputContent: '这是一张纸条样本。',
+    expectedEncodedTitle: 'JUU0JUJEJUEwJUU1JUE1JUJEJUVGJUJDJTgx',
+    expectedEncodedContent:
+      'JUU4JUJGJTk5JUU2JTk4JUFGJUU0JUI4JTgwJUU1JUJDJUEwJUU3JUJBJUI4JUU2JTlEJUExJUU2JUEwJUI3JUU2JTlDJUFDJUUzJTgwJTgy',
+  },
+])(
+  'able to copy shared note properly $constraint',
+  async ({
+    inputTitle,
+    inputContent,
+    expectedEncodedTitle,
+    expectedEncodedContent,
+  }) => {
+    // Because it's important to ensure that the title and the content is encoded properly,
+    // I decided to spy on this function to make sure that it doesn't do anything unexpected.
+    const mockWriteText = jest
+      .spyOn(window.navigator.clipboard, 'writeText')
+      .mockImplementation();
 
-  // Render the app with our new browser context.
-  const { user } = renderWithProviders();
+    // Render the app with our new browser context.
+    const { user } = renderWithProviders();
 
-  // Write something on the inputs.
-  const { title, content } = assertEditor();
-  await user.type(title, 'Income');
-  expect(title).toHaveValue('Income');
-  await user.type(content, 'I finished a project and received 5000 JPY.');
-  expect(content).toHaveValue('I finished a project and received 5000 JPY.');
+    // Write something on the inputs.
+    const { title, content } = assertEditor();
+    await user.type(title, inputTitle);
+    expect(title).toHaveValue(inputTitle);
+    await user.type(content, inputContent);
+    expect(content).toHaveValue(inputContent);
 
-  // Click on the `Share note` button.
-  const expectedEncodedTitle = encodeURIComponent('SW5jb21l');
-  const expectedEncodedContent = encodeURIComponent(
-    'SSBmaW5pc2hlZCBhIHByb2plY3QgYW5kIHJlY2VpdmVkIDUwMDAgSlBZLg=='
-  );
-  const shareNoteButton = screen.getByRole('button', {
-    name: 'Copy/share note link',
-  });
-  await user.click(shareNoteButton);
+    // Click on the `Share note` button.
+    const shareNoteButton = screen.getByRole('button', {
+      name: 'Copy/share note link',
+    });
+    await user.click(shareNoteButton);
 
-  const expectedUrl = `${window.location.href}?title=${expectedEncodedTitle}&content=${expectedEncodedContent}`;
-  expect(mockWriteText).toHaveBeenCalledTimes(1);
-  expect(mockWriteText).toHaveBeenCalledWith(expectedUrl);
-});
+    const expectedUrl = `${window.location.href}?title=${expectedEncodedTitle}&content=${expectedEncodedContent}`;
+    expect(mockWriteText).toHaveBeenCalledTimes(1);
+    expect(mockWriteText).toHaveBeenCalledWith(expectedUrl);
+  }
+);
 
 test('able to see shared URL properly', async () => {
   const startUrl = `${window.location.href}?title=SW5jb21l&content=SSBmaW5pc2hlZCBhIHByb2plY3QgYW5kIHJlY2VpdmVkIDUwMDAgSlBZLg%3D%3D`;
@@ -346,6 +376,18 @@ test.each([
     url: '?content=QmVhdXRpZnVsIFRyYXVtYQ==',
     expectedTitle: 'No title in the shared note',
     expectedContent: 'Beautiful Trauma',
+  },
+  {
+    name: 'valid title and content, japanese characters',
+    url: '?title=JUUzJTgzJThFJUUzJTgzJUJDJUUzJTgzJTg4JUUzJTgxJUE3JUUzJTgxJTk5JUVGJUJDJTgx&content=JUUzJTgxJTkzJUUzJTgxJUFFJUUzJTgzJThFJUUzJTgzJUJDJUUzJTgzJTg4JUUzJTgxJUFGJUU4JUE2JThCJUU2JTlDJUFDJUUzJTgxJUE3JUUzJTgxJTk5JUUzJTgwJTgy',
+    expectedTitle: 'ノートです！',
+    expectedContent: 'このノートは見本です。',
+  },
+  {
+    name: 'valid title and content, chinese characters',
+    url: '?title=JUU0JUJEJUEwJUU1JUE1JUJEJUVGJUJDJTgx&content=JUU4JUJGJTk5JUU2JTk4JUFGJUU0JUI4JTgwJUU1JUJDJUEwJUU3JUJBJUI4JUU2JTlEJUExJUU2JUEwJUI3JUU2JTlDJUFDJUUzJTgwJTgy',
+    expectedTitle: '你好！',
+    expectedContent: '这是一张纸条样本。',
   },
   {
     name: 'invalid title and content',
