@@ -6,7 +6,7 @@ import Button from './Button';
 
 const Configuration = () => {
   const [isDark, setIsDark] = useState(
-    window.matchMedia('(prefers-color-scheme: dark').matches
+    window.matchMedia('(prefers-color-scheme: dark').matches,
   );
 
   const handleThemeChange = () => {
