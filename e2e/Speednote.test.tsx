@@ -46,8 +46,8 @@ test('renders properly', async ({ page }) => {
   await expect(page.getByText('About')).toBeVisible();
   await expect(
     page.getByText(
-      'Thank you so much for using Speednote! Made with ♥ in Tokyo, Japan'
-    )
+      'Thank you so much for using Speednote! Made with ♥ in Tokyo, Japan',
+    ),
   ).toBeVisible();
 
   // Should also render a link to GitHub.
@@ -55,7 +55,7 @@ test('renders properly', async ({ page }) => {
   await expect(linkToSource).toBeVisible();
   await expect(linkToSource).toHaveAttribute(
     'href',
-    'https://github.com/lauslim12/speednote'
+    'https://github.com/lauslim12/speednote',
   );
 });
 
@@ -74,7 +74,7 @@ test('renders and falls back properly with bad data', async ({ page }) => {
           lastUpdated: 'an invalid date',
           frozen: 'not boolean',
         },
-      })
+      }),
     );
   });
 
@@ -107,7 +107,7 @@ test('able to edit title and content', async ({ page }) => {
   await content.fill('Today I spent 1000 JPY for lunch at a fish shop');
   await expect(content).not.toHaveValue('');
   await expect(content).toHaveValue(
-    'Today I spent 1000 JPY for lunch at a fish shop'
+    'Today I spent 1000 JPY for lunch at a fish shop',
   );
 
   // There should be a date that shows the last updated date as well.
@@ -121,7 +121,7 @@ test('able to clear content and undo clear', async ({ page }) => {
   await content.fill("Tears Don't Fall, Enchanted, Beautiful Trauma");
   await expect(content).not.toHaveValue('');
   await expect(content).toHaveValue(
-    "Tears Don't Fall, Enchanted, Beautiful Trauma"
+    "Tears Don't Fall, Enchanted, Beautiful Trauma",
   );
 
   const clearContentButton = page.getByRole('button', {
@@ -135,7 +135,7 @@ test('able to clear content and undo clear', async ({ page }) => {
   // Verify that the data is already stored in the `localStorage`. This is
   // an implementation detail, but it's better to be safe: https://github.com/lauslim12/speednote/issues/31.
   const clearedValue = await page.evaluate(() =>
-    localStorage.getItem('speednote')
+    localStorage.getItem('speednote'),
   );
   expect(clearedValue).toContain('"content":""');
 
@@ -145,15 +145,15 @@ test('able to clear content and undo clear', async ({ page }) => {
   await expect(undoClearButton).toBeEnabled();
   await undoClearButton.click();
   await expect(content).toHaveValue(
-    "Tears Don't Fall, Enchanted, Beautiful Trauma"
+    "Tears Don't Fall, Enchanted, Beautiful Trauma",
   );
 
   // Verify the data is already stored in the `localStorage`.
   const restoredValue = await page.evaluate(() =>
-    localStorage.getItem('speednote')
+    localStorage.getItem('speednote'),
   );
   expect(restoredValue).toContain(
-    `"content":"Tears Don't Fall, Enchanted, Beautiful Trauma"`
+    `"content":"Tears Don't Fall, Enchanted, Beautiful Trauma"`,
   );
 });
 
@@ -187,7 +187,7 @@ test('able to freeze notes and unfreeze them', async ({ page }) => {
   // Verify that the data is already stored in the `localStorage`. This is
   // an implementation detail, but it's better to be safe: https://github.com/lauslim12/speednote/issues/31.
   const frozenValue = await page.evaluate(() =>
-    localStorage.getItem('speednote')
+    localStorage.getItem('speednote'),
   );
   expect(frozenValue).toContain('"frozen":true');
 
@@ -211,7 +211,7 @@ test('able to freeze notes and unfreeze them', async ({ page }) => {
 
   // Verify that the data is already stored in the `localStorage`.
   const unfrozenValue = await page.evaluate(() =>
-    localStorage.getItem('speednote')
+    localStorage.getItem('speednote'),
   );
   expect(unfrozenValue).toContain('"frozen":false');
 
@@ -225,7 +225,7 @@ test('able to freeze notes and unfreeze them', async ({ page }) => {
   await expect(title).toHaveValue('Hello');
   await content.fill('Hi there, I just wanted to type this note.');
   await expect(content).toHaveValue(
-    'Hi there, I just wanted to type this note.'
+    'Hi there, I just wanted to type this note.',
   );
 });
 
@@ -298,9 +298,8 @@ for (const {
     const newPage = await context.newPage();
     await renderPage(newPage, clipboardText as string);
 
-    const { title: newTitle, content: newContent } = await getAndAssertEditor(
-      newPage
-    );
+    const { title: newTitle, content: newContent } =
+      await getAndAssertEditor(newPage);
     await expect(newTitle).toHaveValue(inputTitle);
     await expect(newContent).toHaveValue(inputContent);
 
@@ -316,7 +315,7 @@ for (const {
     // as it is very confusing (which one to share? Our note or the shared note? Communicating the message
     // is difficult, so it's better to make it explicit and just do not make the button visible on a shared note).
     await expect(
-      newPage.getByRole('button', { name: 'Share note' })
+      newPage.getByRole('button', { name: 'Share note' }),
     ).not.toBeVisible();
 
     // Edge-case: update the different page, the local storage should be synced - after the user decided to return
@@ -360,7 +359,7 @@ for (const {
 
     // Verify that the `Share note` button is visible again after returning to the `/` page.
     await expect(
-      newPage.getByRole('button', { name: 'Share note' })
+      newPage.getByRole('button', { name: 'Share note' }),
     ).toBeVisible();
 
     // Close all sessions.
@@ -454,12 +453,12 @@ test('able to view and recover from 404 not found', async ({ page }) => {
   await renderPage(page, '/404');
 
   await expect(
-    page.getByRole('heading', { name: 'Page not found' })
+    page.getByRole('heading', { name: 'Page not found' }),
   ).toBeVisible();
   await expect(
     page.getByRole('heading', {
       name: 'Could not find the requested resource',
-    })
+    }),
   ).toBeVisible();
 
   const backToEditorLink = page.getByRole('link', { name: 'Back to editor' });
