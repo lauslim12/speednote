@@ -8,18 +8,14 @@ jobs:
   next-ci:
     runs-on: ubuntu-latest
 
-    strategy:
-      matrix:
-        node: ['18']
-
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set up Node
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: ${{ matrix.node }}
+          node-version-file: '.node-version'
           cache: 'yarn'
 
       - name: Install dependencies
@@ -40,12 +36,13 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set up Node
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version-file: '.node-version'
+          cache: 'yarn'
 
       - name: Install dependencies
         run: yarn --frozen-lockfile
