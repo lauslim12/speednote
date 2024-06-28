@@ -12,23 +12,28 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Setup PNPM
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
           node-version-file: '.node-version'
-          cache: 'yarn'
+          cache: 'pnpm'
 
       - name: Install dependencies
-        run: yarn --frozen-lockfile
+        run: pnpm --frozen-lockfile
 
       - name: Run quality checks
-        run: yarn quality-check
+        run: pnpm quality-check
 
       - name: Run integration tests
-        run: yarn test-ci
+        run: pnpm test-ci
 
       - name: Build application
-        run: yarn build
+        run: pnpm build
 
   e2e:
     timeout-minutes: 60
@@ -38,20 +43,25 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Setup PNPM
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
           node-version-file: '.node-version'
-          cache: 'yarn'
+          cache: 'pnpm'
 
       - name: Install dependencies
-        run: yarn --frozen-lockfile
+        run: pnpm --frozen-lockfile
 
       - name: Install Playwright browsers
-        run: npx playwright install --with-deps
+        run: pnpm exec playwright install --with-deps
 
       - name: Run Playwright tests
-        run: yarn e2e-ci
+        run: pnpm e2e-ci
 
       - name: Upload test report artifact to GHA
         uses: actions/upload-artifact@v3
