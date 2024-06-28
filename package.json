@@ -1,6 +1,6 @@
 {
   "name": "speednote",
-  "version": "1.0.1",
+  "version": "2.0.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -12,10 +12,10 @@
     "format-check": "prettier --check ./**/*.{ts,tsx}",
     "type-check": "tsc --noEmit",
     "test-ci": "jest --ci --verbose --coverage",
-    "quality-check": "yarn format-check && yarn lint && yarn type-check",
+    "quality-check": "pnpm format-check && pnpm lint && pnpm type-check",
     "e2e": "playwright test",
-    "e2e-prod": "next build && PRODUCTION_READY=1 yarn e2e --ui",
-    "e2e-ci": "next build && PRODUCTION_READY=1 yarn e2e"
+    "e2e-prod": "next build && PRODUCTION_READY=1 pnpm e2e --ui",
+    "e2e-ci": "next build && PRODUCTION_READY=1 pnpm e2e"
   },
   "dependencies": {
     "@playwright/test": "^1.43.1",

@@ -58,7 +58,7 @@ Note that the comparison was made on **29 May 2023**.
 You only need these software packages to run this application:
 
 - [Node.js LTS](https://nodejs.org/en)
-- [Yarn Classic](https://classic.yarnpkg.com/lang/en/)
+- [PNPM](https://pnpm.io/)
 
 ## Development
 
@@ -67,15 +67,15 @@ To start development quickly, please follow the steps below:
 ```bash
 git clone git@github.com:lauslim12/speednote.git
 cd speednote
-yarn
-yarn dev
+pnpm i
+pnpm dev
 ```
 
 To create a production build, you need to follow the steps below:
 
 ```bash
-yarn build
-yarn start
+pnpm build
+pnpm start
 ```
 
 There are no dependencies (environment variables or the like), this is a standalone project.
@@ -86,13 +86,13 @@ Because this project is still small, we can achieve a relatively high enough cod
 
 ```bash
 # To run RTL tests, do the commands below:
-yarn test
-yarn test-ci
+pnpm test
+pnpm test-ci
 
 # To run Playwright tests, do the commands below:
-yarn e2e
-yarn e2e-ci
-yarn e2e-prod
+pnpm e2e
+pnpm e2e-ci
+pnpm e2e-prod
 ```
 
 ## Contributions
