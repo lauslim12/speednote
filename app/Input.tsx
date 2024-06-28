@@ -1,7 +1,6 @@
 'use client';
 
 import type { ComponentPropsWithoutRef } from 'react';
-import TextareaAutosize from 'react-textarea-autosize';
 
 import styles from './Input.module.scss';
 
@@ -31,7 +30,7 @@ const Input = ({
   ].join(' ');
 
   return (
-    <TextareaAutosize
+    <textarea
       id={id}
       className={style}
       onChange={onChange}
