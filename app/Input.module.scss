@@ -6,6 +6,9 @@
   word-break: break-word;
   overflow-wrap: anywhere;
   overflow: hidden;
+
+  /* Auto-resize without awkwardness: https://stackoverflow.com/a/77803596 */
+  field-sizing: content;
 }
 
 .title {
