@@ -1,0 +1,36 @@
+@use './breakpoints';
+
+.base {
+  all: unset;
+  width: 100%;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+  overflow: hidden;
+
+  /* Auto-resize without awkwardness: https://stackoverflow.com/a/77803596 */
+  field-sizing: content;
+}
+
+.title {
+  font-weight: 900;
+  font-size: 2.4rem;
+  line-height: 3rem;
+
+  @include breakpoints.respond(large) {
+    font-size: 1.6rem;
+  }
+}
+
+.content {
+  font-size: 1.2rem;
+  line-height: 2rem;
+
+  @include breakpoints.respond(small) {
+    font-size: 1rem;
+  }
+}
+
+.frozen {
+  color: var(--frozen);
+  white-space: pre-wrap;
+}

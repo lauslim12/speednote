@@ -1,0 +1,19 @@
+.section {
+  margin: 1rem;
+}
+
+.time {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--time);
+}
+
+.autosave {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--time);
+
+  &::before {
+    content: ' ';
+  }
+}
