@@ -1,65 +1,35 @@
-import {
-  cleanup,
-  render,
-  screen,
-  waitForElementToBeRemoved,
-} from '@testing-library/react';
+import { createMemoryHistory, MemoryRouter, Route } from '@solidjs/router';
+import { render, screen } from '@solidjs/testing-library';
 import userEvent from '@testing-library/user-event';
-import * as routerMockComponents from 'next-router-mock';
-import { MemoryRouterProvider } from 'next-router-mock/MemoryRouterProvider';
 
-import Home from '@/app/page';
-import { STORAGE_KEY } from '@/app/use-storage';
+import App from '../src/App';
+import { STORAGE_KEY } from '../src/database';
+import { DEFAULT_DATA } from '../src/database';
+import NotFound from '../src/NotFound';
 
-// Have to mock `matchMedia` because it's not supported in Jest yet. We only use `matches`, so for now we only
-// implement the `matches` property mock. Reference: https://jestjs.io/docs/manual-mocks#mocking-methods-which-are-not-implemented-in-jsdom.
-Object.defineProperty(window, 'matchMedia', {
-  writable: true,
-  value: jest.fn().mockImplementation(() => ({ matches: false })),
+// Mocking is essential in this case as two properties are not supported yet in JSDOM:
+//
+// - `window.matchMedia` (for the dark mode)
+// - `window.scrollTo` (SolidJS uses `scrollTo` when navigating from shared note to the normal note)
+//
+// {@link https://jestjs.io/docs/manual-mocks#mocking-methods-which-are-not-implemented-in-jsdom}
+Object.defineProperties(window, {
+  matchMedia: {
+    writable: true,
+    value: vi.fn().mockImplementation(() => ({ matches: false })),
+  },
+  scrollTo: {
+    value: vi.fn().mockImplementation(() => {}),
+  },
 });
-
-// Have to mock `next/navigation` return values because we need it to test the routing capabilities
-// of the application. Next.js is currently unable to be run as it is on Jest environment, so we need those
-// mocks. Reference: https://github.com/scottrippey/next-router-mock/issues/67#issuecomment-1564906960.
-jest.mock('next/navigation', () => ({
-  ...routerMockComponents,
-  usePathname: () => {
-    const router = routerMockComponents.useRouter();
-    return router.pathname;
-  },
-  useSearchParams: () => {
-    const router = routerMockComponents.useRouter();
-    const path = router.asPath.split('?')?.[1] ?? '';
-    return new URLSearchParams(path);
-  },
-}));
 
 /**
  * This `beforeEach` hook is necessary to prevent unexpected values on tests. `localStorage`
  * can persist through tests!
  */
-beforeEach(() => window.localStorage.clear());
-
-/**
- * This hook is necessary because we used a dynamic import for the `Editor` in `Home` component. We have
- * to firstly initialize the dynamic import before doing anything else to make sure we have
- * a clean and deterministic testing environment. For the subsequent tests, we don't have to
- * wait for the dynamic import because it's already cached and it can be used immediately in
- * subsequent tests.
- */
-beforeAll(async () => {
-  // Initializes the dynamic import before doing anything else. This is required!
-  renderWithProviders();
-
-  // Wait for the editor to load or else it'll cause an `act` warning due
-  // to the dynamic import not loading the editor yet.
-  expect(
-    screen.getByText('Setting up the your note editor in a flash...'),
-  ).toBeInTheDocument();
-  await waitForElementToBeRemoved(screen.queryByRole('progressbar'));
-
-  // Teardown the component because we want to setup a deterministic, clean environment.
-  cleanup();
+beforeEach(() => {
+  window.localStorage.clear();
+  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(DEFAULT_DATA));
 });
 
 const assertEditor = () => {
@@ -98,14 +68,18 @@ const assertConfiguration = () => {
 const renderWithProviders = (route?: string) => {
   const user = userEvent.setup();
 
-  // `MemoryRouterProvider` is useful if we want to start from a URL different than the usual.
+  // Memory history is required for testing purposes if we want to test a different route.
+  const history = createMemoryHistory();
+  history.set({ value: route || '/' });
+
   return {
     user,
-    ...render(
-      <MemoryRouterProvider url={route}>
-        <Home />
-      </MemoryRouterProvider>,
-    ),
+    ...render(() => (
+      <MemoryRouter history={history}>
+        <Route path="/" component={App} />
+        <Route path="*" component={NotFound} />
+      </MemoryRouter>
+    )),
   };
 };
 
@@ -302,9 +276,9 @@ test.each([
   }) => {
     // Because it's important to ensure that the title and the content is encoded properly,
     // I decided to spy on this function to make sure that it doesn't do anything unexpected.
-    const mockWriteText = jest
+    const mockWriteText = vi
       .spyOn(window.navigator.clipboard, 'writeText')
-      .mockImplementation();
+      .mockImplementation(async () => {});
 
     // Render the app with our new browser context.
     const { user } = renderWithProviders();
