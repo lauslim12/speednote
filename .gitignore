@@ -14,6 +14,7 @@
 
 # production
 /build
+/dist
 
 # misc
 .DS_Store
@@ -37,6 +38,7 @@ next-env.d.ts
 # service workers
 public/sw*
 public/workbox-*
+dev-dist/
 
 # playwright
 test-results/
