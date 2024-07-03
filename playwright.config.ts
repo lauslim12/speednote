@@ -9,7 +9,7 @@ export default defineConfig({
   workers: process.env.CI ? 1 : undefined,
   reporter: 'html',
   webServer: {
-    command: process.env.PRODUCTION_READY ? 'pnpm start' : 'pnpm dev', // In production ready environments, use `pnpm start` to simulate production environments.
+    command: process.env.PRODUCTION_READY ? 'pnpm preview' : 'pnpm dev', // In production ready environments, use `pnpm preview` to simulate production environments.
     url: PLAYWRIGHT_BASE_URL,
     timeout: 120 * 1000,
     reuseExistingServer: !process.env.CI,

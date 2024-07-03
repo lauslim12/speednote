@@ -48,7 +48,7 @@ Note that the comparison was made on **29 May 2023**.
 
 ## Tech Stack
 
-- [React 18](https://react.dev/) with [Next.js 13](https://nextjs.org/) as the web framework
+- [SolidJS](https://www.solidjs.com/)
 - [SCSS](https://sass-lang.com/) for the CSS preprocessor
 - [GitHub Actions](https://github.com/features/actions) as the CI/CD part of the application
 - [Vercel](https://vercel.com/) as the deployment platform
@@ -75,7 +75,7 @@ To create a production build, you need to follow the steps below:
 
 ```bash
 pnpm build
-pnpm start
+pnpm preview
 ```
 
 There are no dependencies (environment variables or the like), this is a standalone project.

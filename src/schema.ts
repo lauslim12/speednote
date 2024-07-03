@@ -81,44 +81,35 @@ const stringAsCompatibleBoolean = () => {
 /**
  * Schema that we use to share notes to other people.
  */
-export const sharedNoteSchema = z.discriminatedUnion('isShared', [
-  z.object({
-    isShared: z.literal(true),
-    title: z
-      .string()
-      .nullable()
-      .transform((val) => {
-        if (!val) {
-          return 'No title in the shared note';
-        }
+export const sharedTitleSchema = z
+  .string()
+  .optional()
+  .transform((val) => {
+    if (!val) {
+      return 'No title in the shared note';
+    }
 
-        if (!BASE64_REGEX.test(val)) {
-          return 'Invalid title format from the shared URL, so we cannot read it.';
-        }
+    if (!BASE64_REGEX.test(val)) {
+      return 'Invalid title format from the shared URL, so we cannot read it.';
+    }
 
-        return window.atob(val);
-      }),
-    content: z
-      .string()
-      .nullable()
-      .transform((val) => {
-        if (!val) {
-          return 'No content in the shared note';
-        }
+    return window.atob(val);
+  });
 
-        if (!BASE64_REGEX.test(val)) {
-          return 'Invalid content format from the shared URL, so we cannot read it for now. Please ask the other party to re-share the URL!';
-        }
+export const sharedContentSchema = z
+  .string()
+  .optional()
+  .transform((val) => {
+    if (!val) {
+      return 'No content in the shared note';
+    }
 
-        return window.atob(val);
-      }),
-  }),
-  z.object({
-    isShared: z.literal(false),
-  }),
-]);
+    if (!BASE64_REGEX.test(val)) {
+      return 'Invalid content format from the shared URL, so we cannot read it for now. Please ask the other party to re-share the URL!';
+    }
 
-export type SharedNote = z.infer<typeof sharedNoteSchema>;
+    return window.atob(val);
+  });
 
 /**
  * Application data schema.
@@ -133,19 +124,3 @@ export const dataSchema = z.object({
 });
 
 export type Data = z.infer<typeof dataSchema>;
-
-export const DEFAULT_DATA: Data = {
-  notes: {
-    title: '',
-    content: '',
-    lastUpdated: '',
-    frozen: false,
-  },
-};
-
-export interface State extends Data {
-  setTitle: (title: string, lastUpdated: string) => void;
-  setContent: (content: string, lastUpdated: string) => void;
-  setFrozen: (frozen: boolean) => void;
-  resetContent: (lastUpdated: string) => void;
-}

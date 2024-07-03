@@ -50,7 +50,7 @@ html {
   box-sizing: border-box;
 }
 
-body {
+#root {
   color: rgb(var(--foreground-rgb));
   background: linear-gradient(
       to bottom,
@@ -61,6 +61,7 @@ body {
   display: flex;
   min-height: 100vh;
   flex-direction: column;
+  font-family: 'Inter', sans-serif;
 }
 
 @media (prefers-color-scheme: dark) {
