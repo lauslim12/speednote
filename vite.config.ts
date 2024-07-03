@@ -47,6 +47,14 @@ export default defineConfig({
       },
     }),
   ],
+  define: {
+    // Use `Date.now()` instead of `new Date()` to make sure that the time is in `ja-JP` format properly (timezone issues).
+    'import.meta.env.VITE_APP_VERSION': JSON.stringify(
+      Intl.DateTimeFormat('ja-JP', {
+        dateStyle: 'long',
+      }).format(Date.now()),
+    ),
+  },
   build: {
     target: 'esnext',
   },
