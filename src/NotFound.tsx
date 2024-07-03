@@ -27,7 +27,7 @@ const NotFound = () => (
         Thank you so much for using Speednote! Made with ♥ in Tokyo, Japan
       </p>
 
-      <p class="hash">Should be process env version</p>
+      <p class="hash">{import.meta.env.VITE_APP_VERSION}</p>
     </footer>
   </>
 );
