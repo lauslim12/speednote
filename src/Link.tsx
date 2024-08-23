@@ -1,5 +1,3 @@
-import './Link.scss';
-
 import { A } from '@solidjs/router';
 import { children, type JSX } from 'solid-js';
 

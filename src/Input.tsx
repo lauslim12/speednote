@@ -1,5 +1,3 @@
-import './Input.scss';
-
 import type { JSX } from 'solid-js';
 
 // We want all of the base `textarea` props with the exception of `style` because we do not want
@@ -12,9 +10,9 @@ type InputProps = {
 
 const Input = (props: InputProps) => (
   <textarea
-    class={`base ${props.type === 'title' ? 'title' : 'content'} ${props.readonly && 'frozen'}`}
+    class={`w-full resize-none border-none bg-transparent py-2 text-black outline-none [field-sizing:content] dark:text-white ${props.type === 'title' ? 'text-2xl font-black md:text-4xl' : 'text-base md:text-xl'} ${props.readonly ? 'text-frozen' : undefined}`}
     {...props}
-  />
+  ></textarea>
 );
 
 export default Input;
