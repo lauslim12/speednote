@@ -1,0 +1,9 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+  .link {
+    @apply border-b border-current p-0.5 text-link transition-all duration-200 hover:translate-y-[-2px] hover:bg-link hover:text-white hover:shadow-emboss active:translate-y-0;
+  }
+}
