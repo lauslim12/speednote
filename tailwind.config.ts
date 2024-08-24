@@ -6,9 +6,7 @@ export default {
   darkMode: ['selector'],
   theme: {
     fontFamily: {
-      sans: ['Inter', ...defaultTheme.fontFamily.sans],
-      serif: ['Inter', ...defaultTheme.fontFamily.serif],
-      mono: ['Inter', ...defaultTheme.fontFamily.mono],
+      sans: ['Inter Variable', ...defaultTheme.fontFamily.sans],
     },
     extend: {
       colors: {
