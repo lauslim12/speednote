@@ -39,6 +39,7 @@ next-env.d.ts
 public/sw*
 public/workbox-*
 dev-dist/
+sw.ts
 
 # playwright
 test-results/

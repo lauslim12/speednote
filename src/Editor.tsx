@@ -1,5 +1,3 @@
-import './Editor.scss';
-
 import { debounce } from '@solid-primitives/scheduled';
 import { useSearchParams } from '@solidjs/router';
 import {
@@ -113,17 +111,17 @@ const Metadata = (props: MetadataProps) => {
   return (
     <>
       <Show when={formattedTimestamp() !== null}>
-        <time class="time">Last updated at {formattedTimestamp()}.</time>
+        <time class="text-xs font-semibold text-time sm:text-sm">
+          Last updated at {formattedTimestamp()}.
+        </time>
       </Show>
 
-      <Switch>
-        <Match when={props.save() === 'saving'}>
-          <span class="autosave">Saving...</span>
-        </Match>
-        <Match when={props.save() === 'saved'}>
-          <span class="autosave">Saved.</span>
-        </Match>
-      </Switch>
+      <span class="text-xs font-semibold text-time before:content-['_'] sm:text-sm">
+        <Switch>
+          <Match when={props.save() === 'saving'}>Saving...</Match>
+          <Match when={props.save() === 'saved'}>Saved.</Match>
+        </Switch>
+      </span>
     </>
   );
 };
@@ -155,7 +153,7 @@ const InternalNoteAction = (props: ActionBaseProps) => {
   };
 
   return (
-    <>
+    <div class="flex gap-2">
       <Button onClick={handleClear} disabled={props.state.notes.frozen}>
         Clear content
       </Button>
@@ -165,7 +163,7 @@ const InternalNoteAction = (props: ActionBaseProps) => {
       </Button>
 
       {lastChanges() && <Button onClick={handleUndo}>Undo clear</Button>}
-    </>
+    </div>
   );
 };
 
@@ -231,11 +229,11 @@ const NoteEditor = (props: NoteEditorProps) => {
 
   return (
     <>
-      <section class="section">
+      <section class="m-3">
         <Metadata {...others} save={save} />
       </section>
 
-      <section class="section">
+      <section class="m-3">
         <Input
           id="note-title"
           aria-label="Note title"
@@ -250,7 +248,7 @@ const NoteEditor = (props: NoteEditorProps) => {
         />
       </section>
 
-      <section class="section">
+      <section class="m-3">
         <Input
           id="note-content"
           aria-label="Note content"
@@ -267,11 +265,11 @@ const NoteEditor = (props: NoteEditorProps) => {
         />
       </section>
 
-      <section class="section">
+      <section class="m-3">
         <InternalNoteAction {...others} onSave={handleNoteActionSave} />
       </section>
 
-      <section class="section">
+      <section class="m-3">
         <ExternalNoteAction {...others} onSave={handleNoteActionSave} />
       </section>
     </>

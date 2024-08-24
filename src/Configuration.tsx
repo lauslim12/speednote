@@ -1,23 +1,29 @@
-import { createSignal } from 'solid-js';
+import { createSignal, onMount } from 'solid-js';
 
 import Button from './Button';
 
 const Configuration = () => {
-  const [isDark, setIsDark] = createSignal(
-    window.matchMedia('(prefers-color-scheme: dark').matches,
-  );
+  const root = document.documentElement;
+  const isDarkMedia = window.matchMedia('(prefers-color-scheme: dark)');
+  const [isDark, setIsDark] = createSignal(isDarkMedia.matches);
+
+  onMount(() => {
+    if (isDarkMedia) {
+      root.classList.add('dark');
+      return;
+    }
+
+    root.classList.remove('dark');
+  });
 
   const handleThemeChange = () => {
-    const root = document.documentElement;
     if (isDark()) {
-      root.removeAttribute('data-theme');
-      root.setAttribute('data-theme', 'light');
+      root.classList.remove('dark');
       setIsDark(false);
       return;
     }
 
-    root.removeAttribute('data-theme');
-    root.setAttribute('data-theme', 'dark');
+    root.classList.add('dark');
     setIsDark(true);
   };
 
