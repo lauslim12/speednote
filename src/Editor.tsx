@@ -51,8 +51,8 @@ type SharedNoteProps = {
  * {@link https://github.com/lauslim12/speednote/issues/36}
  */
 const SharedNote = ({ title, content }: SharedNoteProps) => (
-  <>
-    <section class="section">
+  <section class="flex flex-col gap-3 p-1 md:p-3">
+    <section>
       <Input
         id="note-title"
         aria-label="Note title"
@@ -63,7 +63,7 @@ const SharedNote = ({ title, content }: SharedNoteProps) => (
       />
     </section>
 
-    <section class="section">
+    <section>
       <Input
         id="note-content"
         aria-label="Note content"
@@ -74,12 +74,12 @@ const SharedNote = ({ title, content }: SharedNoteProps) => (
       />
     </section>
 
-    <section class="section">
+    <section>
       <Link type="internal" href="/">
         Return to your note
       </Link>
     </section>
-  </>
+  </section>
 );
 
 const NoteEditorRoot = () => {
@@ -228,12 +228,12 @@ const NoteEditor = (props: NoteEditorProps) => {
   };
 
   return (
-    <>
-      <section class="m-3">
+    <section class="flex flex-col gap-3 p-1 md:p-3">
+      <section>
         <Metadata {...others} save={save} />
       </section>
 
-      <section class="m-3">
+      <section>
         <Input
           id="note-title"
           aria-label="Note title"
@@ -248,7 +248,7 @@ const NoteEditor = (props: NoteEditorProps) => {
         />
       </section>
 
-      <section class="m-3">
+      <section>
         <Input
           id="note-content"
           aria-label="Note content"
@@ -265,14 +265,14 @@ const NoteEditor = (props: NoteEditorProps) => {
         />
       </section>
 
-      <section class="m-3">
+      <section>
         <InternalNoteAction {...others} onSave={handleNoteActionSave} />
       </section>
 
-      <section class="m-3">
+      <section>
         <ExternalNoteAction {...others} onSave={handleNoteActionSave} />
       </section>
-    </>
+    </section>
   );
 };
 
