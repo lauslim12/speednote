@@ -8,7 +8,7 @@ const Configuration = () => {
   const [isDark, setIsDark] = createSignal(isDarkMedia.matches);
 
   onMount(() => {
-    if (isDarkMedia) {
+    if (isDarkMedia.matches) {
       root.classList.add('dark');
       return;
     }
