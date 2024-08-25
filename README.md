@@ -17,15 +17,14 @@ The data store that is used by the application is using the [fastest possible da
 ## Features
 
 - Blazingly fast. When you open the app, you can instantly type after the editor is mounted.
-- Utilization of Server Components and Client Components for maximum performance.
 - Configurable theme, it will respect the system's theme initially, but you can always change it.
 - Frozen notes. If you are afraid of accidentally deleting your note, just click on `Freeze note` to freeze your notes from changes. You cannot clear your notes if it's frozen, the button will be disabled.
 - Shareable notes. You can share your note to other people by clicking `Copy/share note link` button. It will automatically copy your note-specific link to your clipboard. The format of the shared note is `https://<SPEEDNOTE_URL>/?title=<BASE64_ENCODED_TEXT>&content=<BASE64_ENCODED_TEXT>`. You can just share the `title` or the `content`, and anything else will be ignored if there are unknown query parameters.
 - Complete with autosave function with reasonable debounce, so you don't have to worry about performance hits, lag, and data loss (stored in `localStorage`).
 - The storage that is used, `localStorage`, is [known to be one of the fastest storage system](https://stackoverflow.com/a/46779140/13980107) and [can save in less than a millisecond](https://gomakethings.com/how-fast-is-vanilla-js-localstorage/).
 - Versioned with the build date on the footer to know if the user is in the latest version of the application or not.
-- Lightweight. I intentionally did not use any heavy UI-frameworks and decided to just use a normal CSS, augmented with SCSS to make it featherweight.
-- Utilizes performance optimizations: re-rendering optimization (only on relevant components), and initializer pattern for static objects and functions for pure components.
+- Lightweight. I intentionally did not use any heavy UI-frameworks and decided to just use a normal CSS, augmented with TailwindCSS to make it featherweight.
+- Utilizes performance optimizations: re-rendering optimization (only on relevant components), and SolidJS's signals and stores for maximum performance.
 - Responsive to make sure that this application could be used in various environments without losing UX.
 - Works offline without any internet connection because this is a Progressive Web Application.
 - Tested with React Testing Library to make sure everything works properly according to the expectations.
@@ -37,19 +36,19 @@ The data store that is used by the application is using the [fastest possible da
 
 |    Product     | Application Size | Require Authentication |                  Platform                  |                    Maximum Note Size                    |                                                                   Concept / Standout Feature                                                                    |
 | :------------: | :--------------: | :--------------------: | :----------------------------------------: | :-----------------------------------------------------: | :-------------------------------------------------------------------------------------------------------------------------------------------------------------: |
-|   Speednote    |     ~400 KB      |           No           |             Web, Mobile (PWA)              | Usually 5 MB or depends on your `localStorage` capacity |  Single-note, text-only, completely independent of account systems, and designed to be a temporary note storage before the content is moved to other platforms  |
+|   Speednote    |     ~300 KB      |           No           |             Web, Mobile (PWA)              | Usually 5 MB or depends on your `localStorage` capacity |  Single-note, text-only, completely independent of account systems, and designed to be a temporary note storage before the content is moved to other platforms  |
 |  Google Keep   |      16 MB       |          Yes           | Web, Mobile (Standalone and PWA available) |     15 GB (free version, uses your Google account)      |     Multiple notes, supports placing images and audio, checkboxes for to-do lists, labels, drawing, also possible to add collaborator and reminders as well     |
 |     Notion     |      38 MB       |          Yes           |          Web, Mobile (Standalone)          |                        Unlimited                        |    Feature-rich, unique building blocks (lists, callouts, dividers, etc.), bookmarks, public pages, hierarchical organization, amazing tables, and many more    |
 |    Evernote    |      120 MB      |          Yes           |          Web, Mobile (Standalone)          |                   25 MB for one note                    | Feature-rich, connectivity with various SaaS products, tasks management, customized search, templates, annotations, version history, web clipper, and many more |
 |    OneNote     |      80 MB       |          Yes           |          Web, Mobile (Standalone)          | Free up to 5GB for notes (uses your Microsoft account)  |                                     Very free, you can add text anywhere, supports placing images and rich-text formatting                                      |
 | Standard Notes |      45 MB       |           No           | Web, Mobile (Standalone and PWA available) |                        Unlimited                        |    Encrpyted, supports rich-text editing (includes Markdown), customizable themes, unique search, smart views, doubles as Authenticator + blogging platform     |
 
-Note that the comparison was made on **29 May 2023**.
+Note that the comparison was made on **August 26, 2024**.
 
 ## Tech Stack
 
 - [SolidJS](https://www.solidjs.com/)
-- [SCSS](https://sass-lang.com/) for the CSS preprocessor
+- [TailwindCSS](https://tailwindcss.com/)
 - [GitHub Actions](https://github.com/features/actions) as the CI/CD part of the application
 - [Vercel](https://vercel.com/) as the deployment platform
 
@@ -57,7 +56,7 @@ Note that the comparison was made on **29 May 2023**.
 
 You only need these software packages to run this application:
 
-- [Node.js LTS](https://nodejs.org/en)
+- [Node.js](https://nodejs.org/en) according to the [`.node-version`](./.node-version)
 - [PNPM](https://pnpm.io/)
 
 ## Development
