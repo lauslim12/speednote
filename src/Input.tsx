@@ -10,7 +10,7 @@ type InputProps = {
 
 const Input = (props: InputProps) => (
   <textarea
-    class={`w-full resize-none border-none bg-transparent py-2 outline-none [field-sizing:content] read-only:text-frozen dark:text-white ${props.type === 'title' ? 'text-2xl font-black md:text-4xl' : 'text-base md:text-xl'}`}
+    class={`w-full resize-none border-none bg-transparent py-2 outline-none [field-sizing:content] read-only:text-frozen dark:text-white ${props.type === 'title' ? 'text-2xl/[3rem] font-black md:text-4xl/[3rem]' : 'text-base/8 md:text-xl/8'}`}
     {...props}
   />
 );
