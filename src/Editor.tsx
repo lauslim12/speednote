@@ -51,7 +51,7 @@ type SharedNoteProps = {
  * {@link https://github.com/lauslim12/speednote/issues/36}
  */
 const SharedNote = ({ title, content }: SharedNoteProps) => (
-  <section class="flex flex-col gap-3 p-1 md:p-3">
+  <section class="flex flex-col gap-3 p-3 md:p-3">
     <section>
       <Input
         id="note-title"
@@ -228,7 +228,7 @@ const NoteEditor = (props: NoteEditorProps) => {
   };
 
   return (
-    <section class="flex flex-col gap-3 p-1 md:p-3">
+    <section class="flex flex-col gap-3 p-3 md:p-3">
       <section>
         <Metadata {...others} save={save} />
       </section>
