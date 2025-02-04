@@ -4,17 +4,17 @@ import { dataSchema } from './schema';
 export const STORAGE_KEY = 'speednote' as const;
 
 export const DEFAULT_DATA: Data = {
-  notes: {
-    title: '',
-    content: '',
-    lastUpdated: '',
-    frozen: false,
-  },
+	notes: {
+		title: '',
+		content: '',
+		lastUpdated: '',
+		frozen: false,
+	},
 };
 
 export interface DatabaseService {
-  setData(data: Data): void;
-  getData(): Data;
+	setData(data: Data): void;
+	getData(): Data;
 }
 
 /**
@@ -24,25 +24,25 @@ export interface DatabaseService {
  * easier testability.
  */
 export const createLocalDatabase = (storage: Storage): DatabaseService => {
-  const setData = (data: Data) => {
-    storage.setItem(STORAGE_KEY, JSON.stringify(data));
-  };
+	const setData = (data: Data) => {
+		storage.setItem(STORAGE_KEY, JSON.stringify(data));
+	};
 
-  const getData = () => {
-    const storageData = storage.getItem(STORAGE_KEY);
-    if (storageData === null) {
-      storage.setItem(STORAGE_KEY, JSON.stringify(DEFAULT_DATA));
-      return DEFAULT_DATA;
-    }
+	const getData = () => {
+		const storageData = storage.getItem(STORAGE_KEY);
+		if (storageData === null) {
+			storage.setItem(STORAGE_KEY, JSON.stringify(DEFAULT_DATA));
+			return DEFAULT_DATA;
+		}
 
-    // Will fallback to the default values if the user somehow disables JavaScript
-    // and fails `JSON.parse` and `JSON.stringify`.
-    try {
-      return dataSchema.parse(JSON.parse(storageData));
-    } catch {
-      return DEFAULT_DATA;
-    }
-  };
+		// Will fallback to the default values if the user somehow disables JavaScript
+		// and fails `JSON.parse` and `JSON.stringify`.
+		try {
+			return dataSchema.parse(JSON.parse(storageData));
+		} catch {
+			return DEFAULT_DATA;
+		}
+	};
 
-  return { setData, getData };
+	return { setData, getData };
 };
