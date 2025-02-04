@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 const BASE64_REGEX =
-  /^([0-9a-zA-Z+/]{4})*(([0-9a-zA-Z+/]{2}==)|([0-9a-zA-Z+/]{3}=))?$/;
+	/^([0-9a-zA-Z+/]{4})*(([0-9a-zA-Z+/]{2}==)|([0-9a-zA-Z+/]{3}=))?$/;
 
 /**
  * Custom Zod schema to create a string-like with a unique fallback. See documentation
@@ -11,11 +11,11 @@ const BASE64_REGEX =
  * @returns Composable/reusable Zod type to create a string with a unique fallback.
  */
 const stringWithDefaultValue = (defaultValue?: string) => {
-  return z
-    .string()
-    .nullish()
-    .transform((x) => x ?? undefined)
-    .default(defaultValue ?? '');
+	return z
+		.string()
+		.nullish()
+		.transform((x) => x ?? undefined)
+		.default(defaultValue ?? '');
 };
 
 /**
@@ -25,19 +25,19 @@ const stringWithDefaultValue = (defaultValue?: string) => {
  * @returns String that is compatible as date.
  */
 const stringAsCompatibleDate = () => {
-  return z.preprocess((x) => {
-    if (typeof x !== 'string') {
-      return '';
-    }
+	return z.preprocess((x) => {
+		if (typeof x !== 'string') {
+			return '';
+		}
 
-    // Make sure that the current string is a valid timestamp, else just use a default empty string.
-    const validTimestamp = new Date(Number.parseInt(x, 10)).getTime() > 0;
-    if (validTimestamp) {
-      return x;
-    }
+		// Make sure that the current string is a valid timestamp, else just use a default empty string.
+		const validTimestamp = new Date(Number.parseInt(x, 10)).getTime() > 0;
+		if (validTimestamp) {
+			return x;
+		}
 
-    return '';
-  }, stringWithDefaultValue());
+		return '';
+	}, stringWithDefaultValue());
 };
 
 /**
@@ -49,78 +49,78 @@ const stringAsCompatibleDate = () => {
  * @returns Boolean values as the result of the transformation.
  */
 const stringAsCompatibleBoolean = () => {
-  return z.preprocess((x) => {
-    if (!x) {
-      return false;
-    }
+	return z.preprocess((x) => {
+		if (!x) {
+			return false;
+		}
 
-    // If it's a boolean then return as is, if it's a 'stringified'
-    // boolean, such as `false` or `true`, then return the appropriate values.
-    // If no match, return `false` as the default boolean value.
-    if (typeof x === 'boolean') {
-      return x;
-    }
+		// If it's a boolean then return as is, if it's a 'stringified'
+		// boolean, such as `false` or `true`, then return the appropriate values.
+		// If no match, return `false` as the default boolean value.
+		if (typeof x === 'boolean') {
+			return x;
+		}
 
-    if (typeof x === 'string') {
-      switch (x) {
-        case 'true':
-          return true;
+		if (typeof x === 'string') {
+			switch (x) {
+				case 'true':
+					return true;
 
-        case 'false':
-          return false;
+				case 'false':
+					return false;
 
-        default:
-          return false;
-      }
-    }
+				default:
+					return false;
+			}
+		}
 
-    return false;
-  }, z.boolean());
+		return false;
+	}, z.boolean());
 };
 
 /**
  * Schema that we use to share notes to other people.
  */
 export const sharedTitleSchema = z
-  .string()
-  .optional()
-  .transform((val) => {
-    if (!val) {
-      return 'No title in the shared note';
-    }
+	.string()
+	.optional()
+	.transform((val) => {
+		if (!val) {
+			return 'No title in the shared note';
+		}
 
-    if (!BASE64_REGEX.test(val)) {
-      return 'Invalid title format from the shared URL, so we cannot read it.';
-    }
+		if (!BASE64_REGEX.test(val)) {
+			return 'Invalid title format from the shared URL, so we cannot read it.';
+		}
 
-    return window.atob(val);
-  });
+		return window.atob(val);
+	});
 
 export const sharedContentSchema = z
-  .string()
-  .optional()
-  .transform((val) => {
-    if (!val) {
-      return 'No content in the shared note';
-    }
+	.string()
+	.optional()
+	.transform((val) => {
+		if (!val) {
+			return 'No content in the shared note';
+		}
 
-    if (!BASE64_REGEX.test(val)) {
-      return 'Invalid content format from the shared URL, so we cannot read it for now. Please ask the other party to re-share the URL!';
-    }
+		if (!BASE64_REGEX.test(val)) {
+			return 'Invalid content format from the shared URL, so we cannot read it for now. Please ask the other party to re-share the URL!';
+		}
 
-    return window.atob(val);
-  });
+		return window.atob(val);
+	});
 
 /**
  * Application data schema.
  */
 export const dataSchema = z.object({
-  notes: z.object({
-    title: stringWithDefaultValue(),
-    content: stringWithDefaultValue(),
-    lastUpdated: stringAsCompatibleDate(),
-    frozen: stringAsCompatibleBoolean(),
-  }),
+	notes: z.object({
+		title: stringWithDefaultValue(),
+		content: stringWithDefaultValue(),
+		lastUpdated: stringAsCompatibleDate(),
+		frozen: stringAsCompatibleBoolean(),
+	}),
 });
 
 export type Data = z.infer<typeof dataSchema>;
