@@ -7,7 +7,7 @@
 		"dev": "vite",
 		"build": "vite build",
 		"preview": "vite preview --port 3000",
-		"check": "tsc --noEmit && biome check {__tests__,e2e,src}",
+		"check": "tsc --noEmit && biome check",
 		"clean": "rm -rf coverage dev-dist dist node_modules playwright-report test-results",
 		"test": "vitest",
 		"test-ci": "vitest run --coverage",
