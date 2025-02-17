@@ -38,5 +38,11 @@
 		"vite-plugin-solid": "^2.10.2",
 		"vitest": "^1.6.0",
 		"zod": "^3.22.5"
+	},
+	"pnpm": {
+		"onlyBuiltDependencies": [
+			"@biomejs/biome",
+			"esbuild"
+		]
 	}
 }
