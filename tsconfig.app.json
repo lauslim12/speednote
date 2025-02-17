@@ -25,7 +25,11 @@
 		"noFallthroughCasesInSwitch": true,
 
 		/* Custom */
-		"types": ["vite/client", "vitest/globals", "@testing-library/jest-dom"]
+		"types": ["vite/client", "vitest/globals", "@testing-library/jest-dom"],
+		"baseUrl": "./",
+		"paths": {
+			"~/*": ["./src/*"]
+		}
 	},
 	"include": ["src", "__tests__", "e2e"]
 }

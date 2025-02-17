@@ -2,10 +2,9 @@ import { MemoryRouter, Route, createMemoryHistory } from '@solidjs/router';
 import { render, screen } from '@solidjs/testing-library';
 import userEvent from '@testing-library/user-event';
 
-import App from '../src/app';
-import { STORAGE_KEY } from '../src/database';
-import { DEFAULT_DATA } from '../src/database';
-import NotFound from '../src/not-found';
+import App from '~/app';
+import { DEFAULT_DATA, STORAGE_KEY } from '~/database';
+import NotFound from '~/not-found';
 
 // Mocking is essential in this case as two properties are not supported yet in JSDOM:
 //
