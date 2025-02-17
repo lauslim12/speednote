@@ -9,10 +9,10 @@ import {
 	splitProps,
 } from 'solid-js';
 
-import Button from './Button';
-import Input from './Input';
-import Link from './Link';
+import Button from './button';
 import { type DatabaseService, createLocalDatabase } from './database';
+import Input from './input';
+import Link from './link';
 import { type Data, sharedContentSchema, sharedTitleSchema } from './schema';
 import { type StoreService, createApplicationStore } from './store';
 

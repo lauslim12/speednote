@@ -1,3 +1,4 @@
+import path from 'node:path';
 import tailwindcss from '@tailwindcss/vite';
 import devtools from 'solid-devtools/vite';
 import { defineConfig } from 'vite';
@@ -62,6 +63,11 @@ export default defineConfig({
 	},
 	server: {
 		port: 3000,
+	},
+	resolve: {
+		alias: {
+			'~': path.resolve(import.meta.dirname, './src/*'),
+		},
 	},
 	test: {
 		globals: true,
