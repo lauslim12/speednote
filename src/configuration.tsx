@@ -1,6 +1,6 @@
 import { createSignal, onMount } from 'solid-js';
 
-import Button from './Button';
+import Button from './button';
 
 const Configuration = () => {
 	const root = document.documentElement;

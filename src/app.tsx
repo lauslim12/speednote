@@ -1,6 +1,6 @@
-import Configuration from './Configuration';
-import Editor from './Editor';
-import Link from './Link';
+import Configuration from './configuration';
+import Editor from './editor';
+import Link from './link';
 
 const App = () => (
 	<>

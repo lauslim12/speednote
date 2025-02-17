@@ -5,9 +5,9 @@ import { Route, Router } from '@solidjs/router';
 import { lazy } from 'solid-js';
 import { render } from 'solid-js/web';
 
-import App from './App';
+import App from './app';
 
-const NotFound = lazy(() => import('./NotFound'));
+const NotFound = lazy(() => import('./not-found'));
 
 const root = document.getElementById('root');
 if (!root) {
