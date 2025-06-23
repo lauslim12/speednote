@@ -1,4 +1,4 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
   <head>
     <!-- Charset -->
@@ -39,13 +39,24 @@
 
     <!-- Title -->
     <title>Speednote — Quickly input your thoughts</title>
+
+    <!-- Load Initial Theme (prevent FOUC) -->
+    <script>
+      const isDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+      if (isDark) {
+        document.documentElement.classList.add("dark");
+      }
+    </script>
+
+    <!-- Load TailwindCSS as inline text to prevent FOUC -->
+    <link rel="stylesheet" href="/app/index.css" />
   </head>
   <body>
     <noscript>Please enable JavaScript to use Speednote.</noscript>
     <div
       id="root"
-      class="selection:bg-selection flex min-h-screen flex-col bg-linear-to-b from-gradient-start to-gradient-end p-3 selection:text-black dark:bg-linear-to-b dark:from-black dark:to-black"
+      class="selection:bg-selection selection:text-black dark:bg-linear-to-b bg-gray-50 text-gray-800 transition-colors duration-300 dark:bg-gray-950 dark:text-gray-200"
     ></div>
-    <script src="/src/index.tsx" type="module"></script>
+    <script src="/app/index.tsx" type="module"></script>
   </body>
 </html>

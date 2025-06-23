@@ -3,19 +3,10 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
-	--font-sans: Inter Variable, ui-sans-serif, system-ui, sans-serif,
-		"Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
-
-	--color-link: #0984e3;
-	--color-thanks: #ee5a24;
-	--color-time: #636e72;
-	--color-frozen: #808e9b;
+	--font-sans:
+		Inter Variable, ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji",
+		"Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
 	--color-selection: #f1c40f;
-
-	--color-gradient-start: rgba(214, 219, 220, 1);
-	--color-gradient-end: rgba(255, 255, 255, 1);
-
-	--shadow-emboss: 0 1rem 4rem rgba(0, 0, 0, 0.25);
 }
 
 /*
@@ -34,8 +25,4 @@
 	::file-selector-button {
 		border-color: var(--color-gray-200, currentColor);
 	}
-}
-
-@utility link {
-	@apply border-b border-current p-0.5 text-link transition-all duration-200 hover:translate-y-[-2px] hover:bg-link hover:text-white hover:shadow-emboss active:translate-y-0;
 }
