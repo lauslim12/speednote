@@ -125,7 +125,7 @@ export const NoteEditor = () => {
 	};
 
 	return (
-		<section className="flex flex-col gap-3 p-3 md:p-3">
+		<section className="flex flex-col gap-3 p-2">
 			<Metadata />
 			<TitleEditor />
 			<ContentEditor />
