@@ -24,6 +24,13 @@
 		"enabled": true,
 		"rules": {
 			"recommended": true,
+			"nursery": {
+				"useSortedClasses": {
+					"fix": "safe",
+					"level": "error",
+					"options": {}
+				}
+			},
 			"style": {
 				"noParameterAssign": "error",
 				"useAsConstAssertion": "error",

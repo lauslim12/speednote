@@ -31,13 +31,13 @@ const Metadata = () => {
 		<section>
 			<time
 				role="note"
-				className="text-xs font-semibold text-gray-400 dark:text-gray-600 sm:text-sm transition-colors duration-300"
+				className="font-semibold text-gray-400 text-xs transition-colors duration-300 sm:text-sm dark:text-gray-600"
 			>
 				Last updated at {formattedTimestamp}.
 			</time>
 
 			{save !== 'idle' && (
-				<span className="text-xs font-semibold text-gray-400 dark:text-gray-600 before:content-['_'] sm:text-sm transition-colors duration-300">
+				<span className="font-semibold text-gray-400 text-xs transition-colors duration-300 before:content-['_'] sm:text-sm dark:text-gray-600">
 					{save === 'saving' && 'Saving...'}
 					{save === 'saved' && 'Saved.'}
 				</span>

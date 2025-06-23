@@ -27,7 +27,7 @@ export const Input = ({ type, className, ...props }: InputProps) => {
 				'read-only:text-stone-500 dark:read-only:text-stone-400',
 				'transition-colors duration-300 ease-in-out',
 				{
-					'text-2xl/[3rem] font-black md:text-4xl/[3rem]': type === 'title',
+					'font-black text-2xl/[3rem] md:text-4xl/[3rem]': type === 'title',
 					'text-base/8 md:text-xl/8': type === 'content',
 				},
 				className,
