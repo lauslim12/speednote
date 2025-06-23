@@ -15,8 +15,7 @@
 		"isolatedModules": true,
 		"moduleDetection": "force",
 		"noEmit": true,
-		"jsx": "preserve",
-		"jsxImportSource": "solid-js",
+		"jsx": "react-jsx",
 
 		/* Linting */
 		"strict": true,
@@ -28,8 +27,8 @@
 		"types": ["vite/client", "vitest/globals", "@testing-library/jest-dom"],
 		"baseUrl": "./",
 		"paths": {
-			"~/*": ["./src/*"]
+			"~/*": ["./app/*"]
 		}
 	},
-	"include": ["src", "__tests__", "e2e"]
+	"include": ["src", "app", "__tests__", "e2e"]
 }
