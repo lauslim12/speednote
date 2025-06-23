@@ -28,7 +28,7 @@ export const NoteStorageLoader = ({ children }: { children: ReactNode }) => {
 
 	if (stage === 'initializing') {
 		return (
-			<div className="flex flex-col gap-2 items-center justify-center flex-1 text-gray-600 dark:text-gray-400">
+			<div className="flex flex-col gap-2 items-center justify-center flex-1 text-gray-600 dark:text-gray-400 text-center">
 				<span>Initializing the flash editor by loading from IndexedDB...</span>
 				<span>
 					In case it is still loading, please refresh the page by clicking the
@@ -41,7 +41,7 @@ export const NoteStorageLoader = ({ children }: { children: ReactNode }) => {
 
 	if (stage === 'error') {
 		return (
-			<div className="flex flex-col gap-2 items-center justify-center flex-1 text-gray-600 dark:text-gray-400">
+			<div className="flex flex-col gap-2 items-center justify-center flex-1 text-gray-600 dark:text-gray-400 text-center">
 				<p>We encountered an error when loading from the browser's storage.</p>
 				<p>Please report this to the developer in GitHub!</p>
 				<pre>{JSON.stringify(error, null, 2)}</pre>
