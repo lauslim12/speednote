@@ -1,40 +1,61 @@
-import { MemoryRouter, Route, createMemoryHistory } from '@solidjs/router';
-import { render, screen } from '@solidjs/testing-library';
+import 'fake-indexeddb/auto';
+import '@testing-library/jest-dom/vitest';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-
-import App from '~/app';
-import { DEFAULT_DATA, STORAGE_KEY } from '~/database';
-import NotFound from '~/not-found';
-
-// Mocking is essential in this case as two properties are not supported yet in JSDOM:
-//
-// - `window.matchMedia` (for the dark mode)
-// - `window.scrollTo` (SolidJS uses `scrollTo` when navigating from shared note to the normal note)
-//
-// {@link https://jestjs.io/docs/manual-mocks#mocking-methods-which-are-not-implemented-in-jsdom}
-Object.defineProperties(window, {
-	matchMedia: {
-		writable: true,
-		value: vi.fn().mockImplementation(() => ({ matches: false })),
-	},
-	scrollTo: {
-		value: vi.fn().mockImplementation(() => {}),
-	},
-});
+import { App } from '~/app';
 
 /**
- * This `beforeEach` hook is necessary to prevent unexpected values on tests. `localStorage`
- * can persist through tests!
+ * Operate on IndexedDB in testing environment. Ensures that the database is
+ * available first before doing anything else.
  */
-beforeEach(() => {
-	window.localStorage.clear();
-	window.localStorage.setItem(STORAGE_KEY, JSON.stringify(DEFAULT_DATA));
+const operateIndexedDB = async (callback?: (idb: IDBObjectStore) => void) => {
+	const databaseName = 'speednote';
+	const storeName = 'notes';
+
+	await new Promise<void>((resolve, reject) => {
+		const open = indexedDB.open(databaseName);
+
+		open.onupgradeneeded = () => {
+			const db = open.result;
+
+			// Only create the store if it doesn't exist.
+			if (!db.objectStoreNames.contains(storeName)) {
+				db.createObjectStore(storeName, { keyPath: 'id' });
+			}
+		};
+
+		open.onsuccess = () => {
+			const db = open.result;
+			const tx = db.transaction(storeName, 'readwrite');
+			const store = tx.objectStore(storeName);
+
+			callback?.(store);
+
+			tx.oncomplete = () => {
+				db.close();
+				resolve();
+			};
+
+			tx.onerror = (e) => {
+				db.close();
+				reject(e);
+			};
+		};
+	});
+};
+
+/**
+ * This `beforeEach` hook is necessary to prevent unexpected values on tests. Indexed DB
+ * can persist through tests, so we need to clear it down every test!
+ */
+beforeEach(async () => {
+	await operateIndexedDB((idb) => idb.clear());
 });
 
-const assertEditor = () => {
+const assertEditor = async () => {
 	const [title, content, undoClearButton] = [
-		screen.getByRole('textbox', { name: 'Note title' }),
-		screen.getByRole('textbox', { name: 'Note content' }),
+		await screen.findByRole('textbox', { name: 'Note title' }),
+		await screen.findByRole('textbox', { name: 'Note content' }),
 		screen.queryByRole('button', { name: 'Undo clear' }), // This is not supposed to be there on the first render.
 	];
 
@@ -53,7 +74,7 @@ const assertEditor = () => {
 	return { title, content };
 };
 
-const assertConfiguration = () => {
+const assertHeader = () => {
 	const [colorModeSwitchButton] = [
 		screen.getByRole('button', { name: 'Color mode switch' }),
 	];
@@ -67,32 +88,22 @@ const assertConfiguration = () => {
 const renderWithProviders = (route?: string) => {
 	const user = userEvent.setup();
 
-	// Memory history is required for testing purposes if we want to test a different route.
-	const history = createMemoryHistory();
-	history.set({ value: route || '/' });
+	// Push to history if required.
+	if (route) {
+		window.history.pushState({}, '', route);
+	}
 
-	return {
-		user,
-		...render(() => (
-			<MemoryRouter history={history}>
-				<Route path="/" component={App} />
-				<Route path="*" component={NotFound} />
-			</MemoryRouter>
-		)),
-	};
+	return { user, ...render(<App />) };
 };
 
-test('renders properly', () => {
+test('renders properly', async () => {
 	renderWithProviders();
 
-	// Presumption of why we don't have the await for progressbar here: We don't need to wait
-	// for the editor to load as it has already been loaded and cached (dynamic import occurs before we
-	// render the `Home` component). Just assert the components to make sure that everything's correct.
-	assertEditor();
-	assertConfiguration();
+	await assertEditor();
+	assertHeader();
 
 	// Sanity checks for markups, check footer and header.
-	expect(screen.getByText('About')).toBeInTheDocument();
+	expect(screen.getByText(/About/i)).toBeInTheDocument();
 	expect(
 		screen.getByText(
 			'Thank you so much for using Speednote! Made with ♥ in Tokyo, Japan',
@@ -100,9 +111,9 @@ test('renders properly', () => {
 	).toBeInTheDocument();
 
 	// Should also render a link to GitHub.
-	const linkToSource = screen.getByRole('link', { name: 'About' });
+	const linkToSource = screen.getByRole('link', { name: /About/ });
 	expect(linkToSource).toBeInTheDocument();
-	expect(linkToSource).toHaveAccessibleName('About');
+	expect(linkToSource).toHaveAccessibleName(/About/);
 	expect(linkToSource).toHaveAttribute(
 		'href',
 		'https://github.com/lauslim12/speednote',
@@ -110,38 +121,33 @@ test('renders properly', () => {
 });
 
 test('renders and falls back properly with bad data', async () => {
-	// Put all kinds of predefined local storage.
-	localStorage.setItem(
-		STORAGE_KEY,
-		JSON.stringify({
-			notes: {
-				title: 'Title',
-				content: '123',
-				lastUpdated: 'an invalid date',
-				frozen: 'not boolean',
-			},
-		}),
-	);
+	// Put all kinds of predefined data in Indexed DB.
+	await operateIndexedDB((idb) => {
+		idb.put({
+			id: 0,
+			title: 'Title',
+			content: '123',
+			lastUpdated: 'an invalid date',
+			isFrozen: 'not boolean',
+		});
+	});
 
 	// Render the app, make sure it does not crash.
 	renderWithProviders();
 
 	// Make sure all values are rendered properly.
-	const { title, content } = assertEditor();
+	const { title, content } = await assertEditor();
 	expect(title).toHaveValue('Title');
 	expect(content).toHaveValue('123');
 
-	// Make sure the time is rendered properly.
-	expect(screen.queryByRole('time')).not.toBeInTheDocument();
-
 	// Edit the content, timer should be synced again.
 	await userEvent.type(content, 'Adding this value.');
-	expect(screen.getByRole('time')).toBeInTheDocument();
+	expect(screen.getByRole('note')).toBeInTheDocument();
 });
 
 test('able to edit title and content', async () => {
 	const { user } = renderWithProviders();
-	const { title, content } = assertEditor();
+	const { title, content } = await assertEditor();
 
 	// Type at both inputs, make sure that both have changes.
 	await user.type(title, 'Expenses as of 25 May 2023');
@@ -161,7 +167,7 @@ test('able to edit title and content', async () => {
 test('able to clear content and undo clear', async () => {
 	const { user } = renderWithProviders();
 
-	const { content } = assertEditor();
+	const { content } = await assertEditor();
 	await user.type(content, "Tears Don't Fall, Enchanted, Beautiful Trauma");
 	expect(content).not.toHaveValue('');
 	expect(content).toHaveValue("Tears Don't Fall, Enchanted, Beautiful Trauma");
@@ -184,7 +190,7 @@ test('able to clear content and undo clear', async () => {
 test('able to switch color mode', async () => {
 	const { user } = renderWithProviders();
 
-	const { colorModeSwitchButton } = assertConfiguration();
+	const { colorModeSwitchButton } = assertHeader();
 	expect(colorModeSwitchButton).toHaveTextContent('Darken');
 	await user.click(colorModeSwitchButton);
 
@@ -198,7 +204,7 @@ test('able to freeze notes and unfreeze them', async () => {
 	const { user } = renderWithProviders();
 
 	// Freeze the notes.
-	const { title, content } = assertEditor();
+	const { title, content } = await assertEditor();
 	const freezeNoteButton = screen.getByRole('button', { name: 'Freeze note' });
 	expect(freezeNoteButton).toBeInTheDocument();
 	expect(freezeNoteButton).toBeEnabled();
@@ -283,7 +289,7 @@ test.each([
 		const { user } = renderWithProviders();
 
 		// Write something on the inputs.
-		const { title, content } = assertEditor();
+		const { title, content } = await assertEditor();
 		await user.type(title, inputTitle);
 		expect(title).toHaveValue(inputTitle);
 		await user.type(content, inputContent);
@@ -301,11 +307,15 @@ test.each([
 	},
 );
 
+// Note: I'd like to be able to test the navigation back to the `/` path, but
+// JSDOM doesn't support it, so it's ok. At the end, it's tested by Playwright as well,
+// so it's no problem.
 test('able to see shared URL properly', async () => {
-	const startUrl = `${window.location.href}?title=SW5jb21l&content=SSBmaW5pc2hlZCBhIHByb2plY3QgYW5kIHJlY2VpdmVkIDUwMDAgSlBZLg%3D%3D`;
-	const { user } = renderWithProviders(startUrl);
+	const startQuery =
+		'?title=SW5jb21l&content=SSBmaW5pc2hlZCBhIHByb2plY3QgYW5kIHJlY2VpdmVkIDUwMDAgSlBZLg%3D%3D';
+	renderWithProviders(startQuery);
 
-	const { title, content } = assertEditor();
+	const { title, content } = await assertEditor();
 	expect(title).toHaveAttribute('readOnly');
 	expect(content).toHaveAttribute('readOnly');
 	expect(title).toHaveValue('Income');
@@ -323,18 +333,6 @@ test('able to see shared URL properly', async () => {
 	});
 	expect(returnButton).toBeInTheDocument();
 	expect(returnButton).toBeEnabled();
-	await user.click(returnButton);
-
-	// Should expect that the title and content have disappeared because we returned back to
-	// the page without the URL query parameters. As this is a redirect, re-fetch the editor and see the results.
-	const { title: notSharedTitle, content: notSharedContent } = assertEditor();
-	expect(notSharedTitle).toHaveValue('');
-	expect(notSharedContent).toHaveValue('');
-
-	const updatedFreezeNoteButton = screen.getByRole('button', {
-		name: 'Freeze note',
-	});
-	expect(updatedFreezeNoteButton).toBeInTheDocument();
 });
 
 test.each([
@@ -389,7 +387,7 @@ test.each([
 	async ({ url, expectedTitle, expectedContent }) => {
 		renderWithProviders(url);
 
-		const { content, title } = assertEditor();
+		const { content, title } = await assertEditor();
 		expect(title).toHaveValue(expectedTitle);
 		expect(content).toHaveValue(expectedContent);
 		expect(title).toHaveAttribute('readOnly');

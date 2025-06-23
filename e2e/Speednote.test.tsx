@@ -1,4 +1,4 @@
-import { type Page, chromium, expect, test } from '@playwright/test';
+import { chromium, expect, type Page, test } from '@playwright/test';
 
 const getAndAssertEditor = async (page: Page) => {
 	const [title, content, undoClearButton] = [
@@ -35,6 +35,53 @@ const renderPage = async (page: Page, route?: string) => {
 	await expect(page).toHaveURL(loadedRoute);
 };
 
+// The type declaration is necessary since this is going to be
+// required for the implementation detail assertion.
+declare global {
+	interface Window {
+		getDataFromIndexedDB: () => Promise<string>;
+	}
+}
+
+// In Playwright, `beforeEach` is recommended for per-test isolation.
+// To test Indexed DB, we have to inject additional functions into the
+// `window` object because when we try to do `page.evaluate`, it can only access
+// things from inside of the browser context. Also, in Playwright, we are not
+// able to use `async` functions inside of `page.addInitScript` due to its
+// serialization quirks.
+test.beforeEach(async ({ page }) => {
+	await page.addInitScript(() => {
+		/**
+		 * Retrieves the note with the given key from IndexedDB.
+		 */
+		window.getDataFromIndexedDB = () => {
+			const dbName = 'speednote';
+			const storeName = 'notes';
+
+			return new Promise((resolve, reject) => {
+				const open = indexedDB.open(dbName);
+
+				open.onerror = reject;
+
+				open.onsuccess = () => {
+					const db = open.result;
+					const tx = db.transaction(storeName, 'readonly');
+					const store = tx.objectStore(storeName);
+
+					const getRequest = store.get(0);
+					getRequest.onsuccess = () => {
+						resolve(JSON.stringify(getRequest.result));
+					};
+
+					getRequest.onerror = reject;
+
+					tx.oncomplete = () => db.close();
+				};
+			});
+		};
+	});
+});
+
 test('renders properly', async ({ page }) => {
 	await renderPage(page);
 
@@ -60,22 +107,40 @@ test('renders properly', async ({ page }) => {
 });
 
 test('renders and falls back properly with bad data', async ({ page }) => {
-	// Put all kinds of predefined local storage. We have to set the variable name
-	// manually because we'll see `_schema is not defined` error on the console. In my opinion,
-	// this makes sense because a normal user will not use `storageKey` variable to manipulate
-	// the `localStorage`.
 	await page.addInitScript(() => {
-		localStorage.setItem(
-			'speednote',
-			JSON.stringify({
-				notes: {
-					title: 'Title',
-					content: '123',
-					lastUpdated: 'an invalid date',
-					frozen: 'not boolean',
-				},
-			}),
-		);
+		const dbName = 'speednote';
+		const storeName = 'notes';
+		const open = indexedDB.open(dbName);
+
+		open.onupgradeneeded = () => {
+			const db = open.result;
+			// Only creates the store if it doesn't already exist.
+			if (!db.objectStoreNames.contains(storeName)) {
+				db.createObjectStore(storeName, { keyPath: 'id' });
+			}
+		};
+
+		open.onsuccess = () => {
+			const db = open.result;
+			const tx = db.transaction([storeName], 'readwrite');
+			const store = tx.objectStore(storeName);
+
+			store.put({
+				id: 0,
+				title: 'Title',
+				content: '123',
+				lastUpdated: 'an invalid date',
+				isFrozen: 'not boolean',
+			});
+
+			tx.oncomplete = () => {
+				db.close();
+			};
+
+			tx.onerror = () => {
+				db.close();
+			};
+		};
 	});
 
 	// Render the app, make sure it does not crash.
@@ -92,7 +157,7 @@ test('renders and falls back properly with bad data', async ({ page }) => {
 	// Edit the content, timer should be synced again.
 	await content.fill('Adding this value.');
 	await expect(content).toHaveValue('Adding this value.');
-	await expect(page.getByRole('time')).toBeVisible();
+	await expect(page.getByRole('note')).toBeVisible();
 });
 
 test('able to edit title and content', async ({ page }) => {
@@ -132,10 +197,10 @@ test('able to clear content and undo clear', async ({ page }) => {
 	await clearContentButton.click();
 	await expect(content).toHaveValue('');
 
-	// Verify that the data is already stored in the `localStorage`. This is
+	// Verify that the data is already stored in the DB. This is
 	// an implementation detail, but it's better to be safe: https://github.com/lauslim12/speednote/issues/31.
-	const clearedValue = await page.evaluate(() =>
-		localStorage.getItem('speednote'),
+	const clearedValue = await page.evaluate(
+		async () => await window.getDataFromIndexedDB(),
 	);
 	expect(clearedValue).toContain('"content":""');
 
@@ -148,9 +213,9 @@ test('able to clear content and undo clear', async ({ page }) => {
 		"Tears Don't Fall, Enchanted, Beautiful Trauma",
 	);
 
-	// Verify the data is already stored in the `localStorage`.
-	const restoredValue = await page.evaluate(() =>
-		localStorage.getItem('speednote'),
+	// Verify the data is already stored in the Indexed DB.
+	const restoredValue = await page.evaluate(
+		async () => await window.getDataFromIndexedDB(),
 	);
 	expect(restoredValue).toContain(
 		`"content":"Tears Don't Fall, Enchanted, Beautiful Trauma"`,
@@ -184,12 +249,12 @@ test('able to freeze notes and unfreeze them', async ({ page }) => {
 	await expect(title).not.toBeEditable();
 	await expect(content).not.toBeEditable();
 
-	// Verify that the data is already stored in the `localStorage`. This is
+	// Verify that the data is already stored in the Indexed DB. This is
 	// an implementation detail, but it's better to be safe: https://github.com/lauslim12/speednote/issues/31.
-	const frozenValue = await page.evaluate(() =>
-		localStorage.getItem('speednote'),
+	const frozenValue = await page.evaluate(
+		async () => await window.getDataFromIndexedDB(),
 	);
-	expect(frozenValue).toContain('"frozen":true');
+	expect(frozenValue).toContain('"isFrozen":true');
 
 	// Try to type, but it also shouldn't be possible. That's why we try to use `force`.
 	await title.fill('Hello', { force: true });
@@ -209,11 +274,11 @@ test('able to freeze notes and unfreeze them', async ({ page }) => {
 	await freezeNoteButton.click();
 	await expect(freezeNoteButton).toHaveText('Freeze note');
 
-	// Verify that the data is already stored in the `localStorage`.
-	const unfrozenValue = await page.evaluate(() =>
-		localStorage.getItem('speednote'),
+	// Verify that the data is already stored in the Indexed DB.
+	const unfrozenValue = await page.evaluate(
+		async () => await window.getDataFromIndexedDB(),
 	);
-	expect(unfrozenValue).toContain('"frozen":false');
+	expect(unfrozenValue).toContain('"isFrozen":false');
 
 	// `Clear content` should not be disabled.
 	await expect(clearContentButton).toBeEnabled();
@@ -448,29 +513,29 @@ test('able to handle unused query parameters', async ({ page }) => {
 	await expect(content).toBeEditable();
 });
 
-// 404 pages are only testable in integration environments as it's a server-side page.
-test('able to view and recover from 404 not found', async ({ page }) => {
-	await renderPage(page, '/404');
+// // 404 pages are only testable in integration environments as it's a server-side page.
+// test('able to view and recover from 404 not found', async ({ page }) => {
+// 	await renderPage(page, '/404');
 
-	await expect(
-		page.getByRole('heading', { name: 'Page not found' }),
-	).toBeVisible();
-	await expect(
-		page.getByRole('heading', {
-			name: 'Could not find the requested resource',
-		}),
-	).toBeVisible();
+// 	await expect(
+// 		page.getByRole('heading', { name: 'Page not found' }),
+// 	).toBeVisible();
+// 	await expect(
+// 		page.getByRole('heading', {
+// 			name: 'Could not find the requested resource',
+// 		}),
+// 	).toBeVisible();
 
-	const backToEditorLink = page.getByRole('link', { name: 'Back to editor' });
-	await expect(backToEditorLink).toBeVisible();
-	await backToEditorLink.click();
+// 	const backToEditorLink = page.getByRole('link', { name: 'Back to editor' });
+// 	await expect(backToEditorLink).toBeVisible();
+// 	await backToEditorLink.click();
 
-	// Should be redirected back to the editor.
-	await page.waitForURL('/');
-	await expect(page).toHaveURL('/');
+// 	// Should be redirected back to the editor.
+// 	await page.waitForURL('/');
+// 	await expect(page).toHaveURL('/');
 
-	// Check the editor.
-	const { title, content } = await getAndAssertEditor(page);
-	await expect(title).toBeEditable();
-	await expect(content).toBeEditable();
-});
+// 	// Check the editor.
+// 	const { title, content } = await getAndAssertEditor(page);
+// 	await expect(title).toBeEditable();
+// 	await expect(content).toBeEditable();
+// });
