@@ -1,6 +1,6 @@
-import { NoteEditor } from './note-editor';
-import { NoteStorageLoader } from './note-storage-loader';
-import { SharedNoteLoader } from './shared-note-loader';
+import { NoteEditor } from "~/editor/note-editor";
+import { NoteStorageLoader } from "~/editor/note-storage-loader";
+import { SharedNoteLoader } from "~/editor/shared-note-loader";
 
 /**
  * Composed note editor. Ready to be used by external APIs of the application.

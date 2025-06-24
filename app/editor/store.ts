@@ -1,4 +1,4 @@
-import { Store, useStore } from '@tanstack/react-store';
+import { Store, useStore } from "@tanstack/react-store";
 
 /**
  * Type definition for the `NoteStore` state.
@@ -21,9 +21,9 @@ type NoteStore = {
  */
 type SystemStore = {
 	/** The loading stage of the app */
-	stage: 'initializing' | 'loaded' | 'error';
+	stage: "initializing" | "loaded" | "error";
 	/** The note save status */
-	save: 'idle' | 'saving' | 'saved';
+	save: "idle" | "saving" | "saved";
 	/** Any error caught during system operations */
 	error: unknown;
 };
@@ -35,9 +35,9 @@ type SystemStore = {
  * @package
  */
 export const SystemStore = new Store<SystemStore>({
-	stage: 'initializing',
-	save: 'idle',
 	error: null,
+	save: "idle",
+	stage: "initializing",
 });
 
 /**
@@ -58,10 +58,10 @@ export const useSystemStore = <T>(selector: (state: SystemStore) => T): T => {
  * @package
  */
 export const NoteStore = new Store<NoteStore>({
-	title: '',
-	content: '',
+	content: "",
 	isFrozen: false,
 	lastUpdated: Date.now(),
+	title: "",
 });
 
 /**
@@ -70,7 +70,7 @@ export const NoteStore = new Store<NoteStore>({
  * @package
  */
 export const setTitle = (title: string, lastUpdated: number) => {
-	NoteStore.setState((state) => ({ ...state, title, lastUpdated }));
+	NoteStore.setState((state) => ({ ...state, lastUpdated, title }));
 };
 
 /**
@@ -100,7 +100,7 @@ export const setFrozen = (isFrozen: boolean) => {
 export const resetContent = (lastUpdated: number) => {
 	NoteStore.setState((state) => ({
 		...state,
-		content: '',
+		content: "",
 		lastUpdated,
 	}));
 };

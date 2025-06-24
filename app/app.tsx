@@ -1,5 +1,5 @@
-import { Editor } from '~/editor';
-import { Header } from '~/header';
+import { Editor } from "~/editor";
+import { Header } from "~/header";
 
 /**
  * Speednote application.

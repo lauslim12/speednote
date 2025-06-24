@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef } from "react";
 
 /**
  * Return value of useDebounceCallback. Provides the debounced function,
@@ -129,5 +129,5 @@ export function useDebounceCallback<F extends (...args: unknown[]) => unknown>(
 		};
 	}, []);
 
-	return { debouncedFn, flush, cancel };
+	return { cancel, debouncedFn, flush };
 }

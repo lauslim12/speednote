@@ -1,48 +1,48 @@
-import { defineConfig, devices } from '@playwright/test';
+import { defineConfig, devices } from "@playwright/test";
 
-const PLAYWRIGHT_BASE_URL = 'http://localhost:3000';
+const PLAYWRIGHT_BASE_URL = "http://localhost:3000";
 
 export default defineConfig({
-	testDir: 'e2e',
-	fullyParallel: true,
 	forbidOnly: !!process.env.CI,
-	workers: process.env.CI ? 1 : undefined,
-	reporter: 'html',
-	webServer: {
-		command: process.env.PRODUCTION_READY ? 'pnpm preview' : 'pnpm dev', // In production ready environments, use `pnpm preview` to simulate production environments.
-		url: PLAYWRIGHT_BASE_URL,
-		timeout: 120 * 1000,
-		reuseExistingServer: !process.env.CI,
-	},
-	use: {
-		baseURL: PLAYWRIGHT_BASE_URL,
-		colorScheme: 'light',
-		trace: 'on-first-retry',
-	},
+	fullyParallel: true,
 	projects: [
 		{
-			name: 'Desktop Chrome',
+			name: "Desktop Chrome",
 			use: {
-				...devices['Desktop Chrome'],
+				...devices["Desktop Chrome"],
 			},
 		},
 		{
-			name: 'Desktop Firefox',
+			name: "Desktop Firefox",
 			use: {
-				...devices['Desktop Firefox'],
+				...devices["Desktop Firefox"],
 			},
 		},
 		{
-			name: 'Desktop Safari',
+			name: "Desktop Safari",
 			use: {
-				...devices['Desktop Safari'],
+				...devices["Desktop Safari"],
 			},
 		},
 		{
-			name: 'Desktop Edge',
+			name: "Desktop Edge",
 			use: {
-				...devices['Desktop Edge'],
+				...devices["Desktop Edge"],
 			},
 		},
 	],
+	reporter: "html",
+	testDir: "e2e",
+	use: {
+		baseURL: PLAYWRIGHT_BASE_URL,
+		colorScheme: "light",
+		trace: "on-first-retry",
+	},
+	webServer: {
+		command: process.env.PRODUCTION_READY ? "pnpm preview" : "pnpm dev", // In production ready environments, use `pnpm preview` to simulate production environments.
+		reuseExistingServer: !process.env.CI,
+		timeout: 120 * 1000,
+		url: PLAYWRIGHT_BASE_URL,
+	},
+	workers: process.env.CI ? 1 : undefined,
 });

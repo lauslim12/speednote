@@ -1,25 +1,25 @@
-import { chromium, expect, type Page, test } from '@playwright/test';
+import { chromium, expect, type Page, test } from "@playwright/test";
 
 const getAndAssertEditor = async (page: Page) => {
 	const [title, content, undoClearButton] = [
-		page.getByRole('textbox', { name: 'Note title' }),
-		page.getByRole('textbox', { name: 'Note content' }),
-		page.getByRole('button', { name: 'Undo clear' }),
+		page.getByRole("textbox", { name: "Note title" }),
+		page.getByRole("textbox", { name: "Note content" }),
+		page.getByRole("button", { name: "Undo clear" }),
 	];
 
 	await expect(title).toBeVisible();
 	await expect(content).toBeVisible();
 	await expect(undoClearButton).not.toBeVisible();
 
-	const inputs = page.getByRole('textbox');
+	const inputs = page.getByRole("textbox");
 	await expect(inputs).toHaveCount(2);
 
-	return { title, content };
+	return { content, title };
 };
 
 const getAndAssertConfiguration = async (page: Page) => {
 	const [colorModeSwitchButton] = [
-		page.getByRole('button', { name: 'Color mode switch' }),
+		page.getByRole("button", { name: "Color mode switch" }),
 	];
 
 	await expect(colorModeSwitchButton).toBeVisible();
@@ -29,7 +29,7 @@ const getAndAssertConfiguration = async (page: Page) => {
 };
 
 const renderPage = async (page: Page, route?: string) => {
-	const loadedRoute = route ? route : '/';
+	const loadedRoute = route ? route : "/";
 
 	await page.goto(loadedRoute);
 	await expect(page).toHaveURL(loadedRoute);
@@ -55,8 +55,8 @@ test.beforeEach(async ({ page }) => {
 		 * Retrieves the note with the given key from IndexedDB.
 		 */
 		window.getDataFromIndexedDB = () => {
-			const dbName = 'speednote';
-			const storeName = 'notes';
+			const dbName = "speednote";
+			const storeName = "notes";
 
 			return new Promise((resolve, reject) => {
 				const open = indexedDB.open(dbName);
@@ -65,7 +65,7 @@ test.beforeEach(async ({ page }) => {
 
 				open.onsuccess = () => {
 					const db = open.result;
-					const tx = db.transaction(storeName, 'readonly');
+					const tx = db.transaction(storeName, "readonly");
 					const store = tx.objectStore(storeName);
 
 					const getRequest = store.get(0);
@@ -82,7 +82,7 @@ test.beforeEach(async ({ page }) => {
 	});
 });
 
-test('renders properly', async ({ page }) => {
+test("renders properly", async ({ page }) => {
 	await renderPage(page);
 
 	// Assert all components to make sure that they are correct.
@@ -90,47 +90,47 @@ test('renders properly', async ({ page }) => {
 	await getAndAssertConfiguration(page);
 
 	// Sanity checks for markups, check footer and header.
-	await expect(page.getByText('About')).toBeVisible();
+	await expect(page.getByText("About")).toBeVisible();
 	await expect(
 		page.getByText(
-			'Thank you so much for using Speednote! Made with ♥ in Tokyo, Japan',
+			"Thank you so much for using Speednote! Made with ♥ in Tokyo, Japan",
 		),
 	).toBeVisible();
 
 	// Should also render a link to GitHub.
-	const linkToSource = page.getByRole('link', { name: 'About' });
+	const linkToSource = page.getByRole("link", { name: "About" });
 	await expect(linkToSource).toBeVisible();
 	await expect(linkToSource).toHaveAttribute(
-		'href',
-		'https://github.com/lauslim12/speednote',
+		"href",
+		"https://github.com/lauslim12/speednote",
 	);
 });
 
-test('renders and falls back properly with bad data', async ({ page }) => {
+test("renders and falls back properly with bad data", async ({ page }) => {
 	await page.addInitScript(() => {
-		const dbName = 'speednote';
-		const storeName = 'notes';
+		const dbName = "speednote";
+		const storeName = "notes";
 		const open = indexedDB.open(dbName);
 
 		open.onupgradeneeded = () => {
 			const db = open.result;
 			// Only creates the store if it doesn't already exist.
 			if (!db.objectStoreNames.contains(storeName)) {
-				db.createObjectStore(storeName, { keyPath: 'id' });
+				db.createObjectStore(storeName, { keyPath: "id" });
 			}
 		};
 
 		open.onsuccess = () => {
 			const db = open.result;
-			const tx = db.transaction([storeName], 'readwrite');
+			const tx = db.transaction([storeName], "readwrite");
 			const store = tx.objectStore(storeName);
 
 			store.put({
+				content: "123",
 				id: 0,
-				title: 'Title',
-				content: '123',
-				lastUpdated: 'an invalid date',
-				isFrozen: 'not boolean',
+				isFrozen: "not boolean",
+				lastUpdated: "an invalid date",
+				title: "Title",
 			});
 
 			tx.oncomplete = () => {
@@ -148,54 +148,54 @@ test('renders and falls back properly with bad data', async ({ page }) => {
 
 	// Make sure all values are rendered properly.
 	const { title, content } = await getAndAssertEditor(page);
-	await expect(title).toHaveValue('Title');
-	await expect(content).toHaveValue('123');
+	await expect(title).toHaveValue("Title");
+	await expect(content).toHaveValue("123");
 
 	// Make sure the time is rendered properly.
-	await expect(page.getByRole('time')).not.toBeVisible();
+	await expect(page.getByRole("time")).not.toBeVisible();
 
 	// Edit the content, timer should be synced again.
-	await content.fill('Adding this value.');
-	await expect(content).toHaveValue('Adding this value.');
-	await expect(page.getByRole('note')).toBeVisible();
+	await content.fill("Adding this value.");
+	await expect(content).toHaveValue("Adding this value.");
+	await expect(page.getByRole("note")).toBeVisible();
 });
 
-test('able to edit title and content', async ({ page }) => {
+test("able to edit title and content", async ({ page }) => {
 	await renderPage(page);
 	const { title, content } = await getAndAssertEditor(page);
 
 	// Type at both inputs, make sure that both have changes.
-	await title.fill('Expenses as of 25 May 2023');
-	await expect(title).not.toHaveValue('');
-	await expect(title).toHaveValue('Expenses as of 25 May 2023');
+	await title.fill("Expenses as of 25 May 2023");
+	await expect(title).not.toHaveValue("");
+	await expect(title).toHaveValue("Expenses as of 25 May 2023");
 
-	await content.fill('Today I spent 1000 JPY for lunch at a fish shop');
-	await expect(content).not.toHaveValue('');
+	await content.fill("Today I spent 1000 JPY for lunch at a fish shop");
+	await expect(content).not.toHaveValue("");
 	await expect(content).toHaveValue(
-		'Today I spent 1000 JPY for lunch at a fish shop',
+		"Today I spent 1000 JPY for lunch at a fish shop",
 	);
 
 	// There should be a date that shows the last updated date as well.
 	await expect(page.getByText(/Last updated at/i)).toBeVisible();
 });
 
-test('able to clear content and undo clear', async ({ page }) => {
+test("able to clear content and undo clear", async ({ page }) => {
 	await renderPage(page);
 
 	const { content } = await getAndAssertEditor(page);
 	await content.fill("Tears Don't Fall, Enchanted, Beautiful Trauma");
-	await expect(content).not.toHaveValue('');
+	await expect(content).not.toHaveValue("");
 	await expect(content).toHaveValue(
 		"Tears Don't Fall, Enchanted, Beautiful Trauma",
 	);
 
-	const clearContentButton = page.getByRole('button', {
-		name: 'Clear content',
+	const clearContentButton = page.getByRole("button", {
+		name: "Clear content",
 	});
 	await expect(clearContentButton).toBeVisible();
 	await expect(clearContentButton).toBeEnabled();
 	await clearContentButton.click();
-	await expect(content).toHaveValue('');
+	await expect(content).toHaveValue("");
 
 	// Verify that the data is already stored in the DB. This is
 	// an implementation detail, but it's better to be safe: https://github.com/lauslim12/speednote/issues/31.
@@ -205,7 +205,7 @@ test('able to clear content and undo clear', async ({ page }) => {
 	expect(clearedValue).toContain('"content":""');
 
 	// Query the `undoClearButton` again here.
-	const undoClearButton = page.getByRole('button', { name: 'Undo clear' });
+	const undoClearButton = page.getByRole("button", { name: "Undo clear" });
 	await expect(undoClearButton).toBeVisible();
 	await expect(undoClearButton).toBeEnabled();
 	await undoClearButton.click();
@@ -222,30 +222,30 @@ test('able to clear content and undo clear', async ({ page }) => {
 	);
 });
 
-test('able to switch color mode', async ({ page }) => {
+test("able to switch color mode", async ({ page }) => {
 	await renderPage(page);
 
 	const { colorModeSwitchButton } = await getAndAssertConfiguration(page);
-	await expect(colorModeSwitchButton).toHaveText('Darken');
+	await expect(colorModeSwitchButton).toHaveText("Darken");
 	await colorModeSwitchButton.click();
 
-	await expect(colorModeSwitchButton).toHaveText('Lighten');
+	await expect(colorModeSwitchButton).toHaveText("Lighten");
 	await colorModeSwitchButton.click();
 
-	await expect(colorModeSwitchButton).toHaveText('Darken');
+	await expect(colorModeSwitchButton).toHaveText("Darken");
 });
 
-test('able to freeze notes and unfreeze them', async ({ page }) => {
+test("able to freeze notes and unfreeze them", async ({ page }) => {
 	await renderPage(page);
 
 	// Freeze the notes.
 	const { title, content } = await getAndAssertEditor(page);
-	const freezeNoteButton = page.getByRole('button', { name: 'Freeze note' });
+	const freezeNoteButton = page.getByRole("button", { name: "Freeze note" });
 	await expect(freezeNoteButton).toBeEnabled();
 	await freezeNoteButton.click();
 
 	// Should have `readOnly` attribute.
-	await expect(freezeNoteButton).toHaveText('Unfreeze note');
+	await expect(freezeNoteButton).toHaveText("Unfreeze note");
 	await expect(title).not.toBeEditable();
 	await expect(content).not.toBeEditable();
 
@@ -257,14 +257,14 @@ test('able to freeze notes and unfreeze them', async ({ page }) => {
 	expect(frozenValue).toContain('"isFrozen":true');
 
 	// Try to type, but it also shouldn't be possible. That's why we try to use `force`.
-	await title.fill('Hello', { force: true });
-	await expect(title).toHaveValue('');
-	await content.fill('Hi there!', { force: true });
-	await expect(content).toHaveValue('');
+	await title.fill("Hello", { force: true });
+	await expect(title).toHaveValue("");
+	await content.fill("Hi there!", { force: true });
+	await expect(content).toHaveValue("");
 
 	// The `Clear content` button should be disabled.
-	const clearContentButton = page.getByRole('button', {
-		name: 'Clear content',
+	const clearContentButton = page.getByRole("button", {
+		name: "Clear content",
 	});
 	await expect(clearContentButton).toBeVisible();
 	await expect(clearContentButton).toBeDisabled();
@@ -272,7 +272,7 @@ test('able to freeze notes and unfreeze them', async ({ page }) => {
 	// Unfreeze the note.
 	await expect(freezeNoteButton).toBeEnabled();
 	await freezeNoteButton.click();
-	await expect(freezeNoteButton).toHaveText('Freeze note');
+	await expect(freezeNoteButton).toHaveText("Freeze note");
 
 	// Verify that the data is already stored in the Indexed DB.
 	const unfrozenValue = await page.evaluate(
@@ -286,39 +286,39 @@ test('able to freeze notes and unfreeze them', async ({ page }) => {
 	// Try to type, should be possible.
 	await expect(title).toBeEditable();
 	await expect(content).toBeEditable();
-	await title.fill('Hello');
-	await expect(title).toHaveValue('Hello');
-	await content.fill('Hi there, I just wanted to type this note.');
+	await title.fill("Hello");
+	await expect(title).toHaveValue("Hello");
+	await content.fill("Hi there, I just wanted to type this note.");
 	await expect(content).toHaveValue(
-		'Hi there, I just wanted to type this note.',
+		"Hi there, I just wanted to type this note.",
 	);
 });
 
 const copyAndSeeSharedNoteTestCases = [
 	{
-		constraint: 'with normal characters',
-		inputTitle: 'Income',
-		inputContent: 'I finished a project and received 5000 JPY.',
-		expectedEncodedTitle: 'SW5jb21l',
+		constraint: "with normal characters",
 		expectedEncodedContent:
-			'SSUyMGZpbmlzaGVkJTIwYSUyMHByb2plY3QlMjBhbmQlMjByZWNlaXZlZCUyMDUwMDAlMjBKUFku',
+			"SSUyMGZpbmlzaGVkJTIwYSUyMHByb2plY3QlMjBhbmQlMjByZWNlaXZlZCUyMDUwMDAlMjBKUFku",
+		expectedEncodedTitle: "SW5jb21l",
+		inputContent: "I finished a project and received 5000 JPY.",
+		inputTitle: "Income",
 	},
 	{
-		constraint: 'with japanese characters',
-		inputTitle: 'ノートです！',
-		inputContent: 'このノートは見本です。',
+		constraint: "with japanese characters",
+		expectedEncodedContent:
+			"JUUzJTgxJTkzJUUzJTgxJUFFJUUzJTgzJThFJUUzJTgzJUJDJUUzJTgzJTg4JUUzJTgxJUFGJUU4JUE2JThCJUU2JTlDJUFDJUUzJTgxJUE3JUUzJTgxJTk5JUUzJTgwJTgy",
 		expectedEncodedTitle:
-			'JUUzJTgzJThFJUUzJTgzJUJDJUUzJTgzJTg4JUUzJTgxJUE3JUUzJTgxJTk5JUVGJUJDJTgx',
-		expectedEncodedContent:
-			'JUUzJTgxJTkzJUUzJTgxJUFFJUUzJTgzJThFJUUzJTgzJUJDJUUzJTgzJTg4JUUzJTgxJUFGJUU4JUE2JThCJUU2JTlDJUFDJUUzJTgxJUE3JUUzJTgxJTk5JUUzJTgwJTgy',
+			"JUUzJTgzJThFJUUzJTgzJUJDJUUzJTgzJTg4JUUzJTgxJUE3JUUzJTgxJTk5JUVGJUJDJTgx",
+		inputContent: "このノートは見本です。",
+		inputTitle: "ノートです！",
 	},
 	{
-		constraint: 'with chinese characters',
-		inputTitle: '你好！',
-		inputContent: '这是一张纸条样本。',
-		expectedEncodedTitle: 'JUU0JUJEJUEwJUU1JUE1JUJEJUVGJUJDJTgx',
+		constraint: "with chinese characters",
 		expectedEncodedContent:
-			'JUU4JUJGJTk5JUU2JTk4JUFGJUU0JUI4JTgwJUU1JUJDJUEwJUU3JUJBJUI4JUU2JTlEJUExJUU2JUEwJUI3JUU2JTlDJUFDJUUzJTgwJTgy',
+			"JUU4JUJGJTk5JUU2JTk4JUFGJUU0JUI4JTgwJUU1JUJDJUEwJUU3JUJBJUI4JUU2JTlEJUExJUU2JUEwJUI3JUU2JTlDJUFDJUUzJTgwJTgy",
+		expectedEncodedTitle: "JUU0JUJEJUEwJUU1JUE1JUJEJUVGJUJDJTgx",
+		inputContent: "这是一张纸条样本。",
+		inputTitle: "你好！",
 	},
 ];
 
@@ -333,7 +333,7 @@ for (const {
 		// We need to use a new browser context to allow permission to write to clipboard in the headless Playwright test.
 		const browser = await chromium.launch();
 		const context = await browser.newContext({
-			permissions: ['clipboard-write', 'clipboard-read'],
+			permissions: ["clipboard-write", "clipboard-read"],
 		});
 		const page = await context.newPage();
 
@@ -342,7 +342,7 @@ for (const {
 
 		// Write something on the inputs.
 		const { title, content } = await getAndAssertEditor(page);
-		const freezeNoteButton = page.getByRole('button', { name: 'Freeze note' });
+		const freezeNoteButton = page.getByRole("button", { name: "Freeze note" });
 		await expect(freezeNoteButton).toBeVisible();
 		await title.fill(inputTitle);
 		await expect(title).toHaveValue(inputTitle);
@@ -350,12 +350,12 @@ for (const {
 		await expect(content).toHaveValue(inputContent);
 
 		// Click on the `Share note` button.
-		const shareNoteButton = page.getByRole('button', { name: 'Share note' });
+		const shareNoteButton = page.getByRole("button", { name: "Share note" });
 		await shareNoteButton.click();
 
 		// Slightly testing implementation details, make sure that the shared URL is correct. We don't
 		// care about the leading parts, we just want to make sure that the URL query params are correct.
-		const clipboardText = await page.evaluate('navigator.clipboard.readText()');
+		const clipboardText = await page.evaluate("navigator.clipboard.readText()");
 		const expectedUrl = `?title=${expectedEncodedTitle}&content=${expectedEncodedContent}`;
 		expect(clipboardText).toContain(expectedUrl);
 
@@ -369,8 +369,8 @@ for (const {
 		await expect(newContent).toHaveValue(inputContent);
 
 		// Freeze note button should not be here, and all of the inputs should be read only.
-		const newFreezeNoteButton = newPage.getByRole('button', {
-			name: 'Freeze note',
+		const newFreezeNoteButton = newPage.getByRole("button", {
+			name: "Freeze note",
 		});
 		await expect(newFreezeNoteButton).not.toBeVisible();
 		await expect(newTitle).not.toBeEditable();
@@ -380,51 +380,51 @@ for (const {
 		// as it is very confusing (which one to share? Our note or the shared note? Communicating the message
 		// is difficult, so it's better to make it explicit and just do not make the button visible on a shared note).
 		await expect(
-			newPage.getByRole('button', { name: 'Share note' }),
+			newPage.getByRole("button", { name: "Share note" }),
 		).not.toBeVisible();
 
 		// Edge-case: update the different page, the local storage should be synced - after the user decided to return
 		// to the normal note, the user should see the normal note.
 		await title.clear();
-		await title.fill('Expense');
-		await expect(title).toHaveValue('Expense');
+		await title.fill("Expense");
+		await expect(title).toHaveValue("Expense");
 		await content.clear();
-		await content.fill('Hi there!');
-		await expect(content).toHaveValue('Hi there!');
+		await content.fill("Hi there!");
+		await expect(content).toHaveValue("Hi there!");
 		await freezeNoteButton.click();
 		await expect(title).not.toBeEditable();
 		await expect(content).not.toBeEditable();
 
 		// Return to the normal, ensure that components and the freeze button are here.
-		const returnButton = newPage.getByRole('link', {
-			name: 'Return to your note',
+		const returnButton = newPage.getByRole("link", {
+			name: "Return to your note",
 		});
 		await expect(returnButton).toBeVisible();
 		await returnButton.click();
 
 		// Should re-render again, validate again that all have rendered successfully.
-		await newPage.waitForURL('/');
-		await expect(newPage).toHaveURL('/');
+		await newPage.waitForURL("/");
+		await expect(newPage).toHaveURL("/");
 
 		// Edge-case: make sure that once we get back to the normal page, the local storage is synced properly and the
 		// change is using the latest one after we have updated the inputs after opening the link from the clipboard.
-		const rerenderedTitle = newPage.getByRole('textbox', {
-			name: 'Note title',
+		const rerenderedTitle = newPage.getByRole("textbox", {
+			name: "Note title",
 		});
-		const rerenderedContent = newPage.getByRole('textbox', {
-			name: 'Note content',
+		const rerenderedContent = newPage.getByRole("textbox", {
+			name: "Note content",
 		});
-		const secondUpdatedFrozenButton = newPage.getByRole('button', {
-			name: 'Freeze note',
+		const secondUpdatedFrozenButton = newPage.getByRole("button", {
+			name: "Freeze note",
 		});
 
-		await expect(rerenderedTitle).toHaveValue('Expense');
-		await expect(rerenderedContent).toHaveValue('Hi there!');
+		await expect(rerenderedTitle).toHaveValue("Expense");
+		await expect(rerenderedContent).toHaveValue("Hi there!");
 		await expect(secondUpdatedFrozenButton).toBeVisible();
 
 		// Verify that the `Share note` button is visible again after returning to the `/` page.
 		await expect(
-			newPage.getByRole('button', { name: 'Share note' }),
+			newPage.getByRole("button", { name: "Share note" }),
 		).toBeVisible();
 
 		// Close all sessions.
@@ -436,50 +436,50 @@ for (const {
 // Playwright doesn't support Jest's `test.each`, so we have to use this looping workaround.
 const invalidFormatUrlTestCases = [
 	{
-		name: 'valid title, but no content',
-		url: '?title=RW5jaGFudGVk',
-		expectedTitle: 'Enchanted',
-		expectedContent: 'No content in the shared note',
+		expectedContent: "No content in the shared note",
+		expectedTitle: "Enchanted",
+		name: "valid title, but no content",
+		url: "?title=RW5jaGFudGVk",
 	},
 	{
-		name: 'valid content, but no title',
-		url: '?content=QmVhdXRpZnVsIFRyYXVtYQ==',
-		expectedTitle: 'No title in the shared note',
-		expectedContent: 'Beautiful Trauma',
+		expectedContent: "Beautiful Trauma",
+		expectedTitle: "No title in the shared note",
+		name: "valid content, but no title",
+		url: "?content=QmVhdXRpZnVsIFRyYXVtYQ==",
 	},
 	{
-		name: 'valid title and content, japanese characters',
-		url: '?title=JUUzJTgzJThFJUUzJTgzJUJDJUUzJTgzJTg4JUUzJTgxJUE3JUUzJTgxJTk5JUVGJUJDJTgx&content=JUUzJTgxJTkzJUUzJTgxJUFFJUUzJTgzJThFJUUzJTgzJUJDJUUzJTgzJTg4JUUzJTgxJUFGJUU4JUE2JThCJUU2JTlDJUFDJUUzJTgxJUE3JUUzJTgxJTk5JUUzJTgwJTgy',
-		expectedTitle: 'ノートです！',
-		expectedContent: 'このノートは見本です。',
+		expectedContent: "このノートは見本です。",
+		expectedTitle: "ノートです！",
+		name: "valid title and content, japanese characters",
+		url: "?title=JUUzJTgzJThFJUUzJTgzJUJDJUUzJTgzJTg4JUUzJTgxJUE3JUUzJTgxJTk5JUVGJUJDJTgx&content=JUUzJTgxJTkzJUUzJTgxJUFFJUUzJTgzJThFJUUzJTgzJUJDJUUzJTgzJTg4JUUzJTgxJUFGJUU4JUE2JThCJUU2JTlDJUFDJUUzJTgxJUE3JUUzJTgxJTk5JUUzJTgwJTgy",
 	},
 	{
-		name: 'valid title and content, chinese characters',
-		url: '?title=JUU0JUJEJUEwJUU1JUE1JUJEJUVGJUJDJTgx&content=JUU4JUJGJTk5JUU2JTk4JUFGJUU0JUI4JTgwJUU1JUJDJUEwJUU3JUJBJUI4JUU2JTlEJUExJUU2JUEwJUI3JUU2JTlDJUFDJUUzJTgwJTgy',
-		expectedTitle: '你好！',
-		expectedContent: '这是一张纸条样本。',
+		expectedContent: "这是一张纸条样本。",
+		expectedTitle: "你好！",
+		name: "valid title and content, chinese characters",
+		url: "?title=JUU0JUJEJUEwJUU1JUE1JUJEJUVGJUJDJTgx&content=JUU4JUJGJTk5JUU2JTk4JUFGJUU0JUI4JTgwJUU1JUJDJUEwJUU3JUJBJUI4JUU2JTlEJUExJUU2JUEwJUI3JUU2JTlDJUFDJUUzJTgwJTgy",
 	},
 	{
-		name: 'invalid title and content',
-		url: '?title=xxx&content=yyy',
-		expectedTitle:
-			'Invalid title format from the shared URL, so we cannot read it.',
 		expectedContent:
-			'Invalid content format from the shared URL, so we cannot read it for now. Please ask the other party to re-share the URL!',
-	},
-	{
-		name: 'title only',
-		url: '?title=xxx&content=QmVhdXRpZnVsIFRyYXVtYQ==',
+			"Invalid content format from the shared URL, so we cannot read it for now. Please ask the other party to re-share the URL!",
 		expectedTitle:
-			'Invalid title format from the shared URL, so we cannot read it.',
-		expectedContent: 'Beautiful Trauma',
+			"Invalid title format from the shared URL, so we cannot read it.",
+		name: "invalid title and content",
+		url: "?title=xxx&content=yyy",
 	},
 	{
-		name: 'content only',
-		url: '?title=RW5jaGFudGVk&content=123',
-		expectedTitle: 'Enchanted',
+		expectedContent: "Beautiful Trauma",
+		expectedTitle:
+			"Invalid title format from the shared URL, so we cannot read it.",
+		name: "title only",
+		url: "?title=xxx&content=QmVhdXRpZnVsIFRyYXVtYQ==",
+	},
+	{
 		expectedContent:
-			'Invalid content format from the shared URL, so we cannot read it for now. Please ask the other party to re-share the URL!',
+			"Invalid content format from the shared URL, so we cannot read it for now. Please ask the other party to re-share the URL!",
+		expectedTitle: "Enchanted",
+		name: "content only",
+		url: "?title=RW5jaGFudGVk&content=123",
 	},
 ];
 
@@ -498,14 +498,14 @@ for (const { name, ...testCase } of invalidFormatUrlTestCases) {
 		await expect(content).toHaveValue(testCase.expectedContent);
 
 		// Freeze note button should not be here.
-		const freezeNoteButton = page.getByRole('button', { name: 'Freeze note' });
+		const freezeNoteButton = page.getByRole("button", { name: "Freeze note" });
 		await expect(freezeNoteButton).not.toBeVisible();
 	});
 }
 
-test('able to handle unused query parameters', async ({ page }) => {
+test("able to handle unused query parameters", async ({ page }) => {
 	// Render the app with our new browser context.
-	await renderPage(page, '?has-unused-param=test&unused-try=2');
+	await renderPage(page, "?has-unused-param=test&unused-try=2");
 
 	// Write something on the inputs.
 	const { title, content } = await getAndAssertEditor(page);

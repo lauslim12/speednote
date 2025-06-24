@@ -1,13 +1,12 @@
-import Dexie, { type EntityTable } from 'dexie';
-import * as v from 'valibot';
+import Dexie, { type EntityTable } from "dexie";
+import * as v from "valibot";
 
 /*
  * Strict schema for the database data from Indexed DB, in case a user has
  * an invalid data in their database, so it could fallback to the specified values.
  */
 const databaseSchema = v.object({
-	title: v.fallback(v.string(), ''),
-	content: v.fallback(v.string(), ''),
+	content: v.fallback(v.string(), ""),
 	isFrozen: v.fallback(v.boolean(), false),
 	lastUpdated: v.pipe(
 		v.fallback(v.number(), () => Date.now()),
@@ -21,6 +20,7 @@ const databaseSchema = v.object({
 			return Date.now();
 		}),
 	),
+	title: v.fallback(v.string(), ""),
 });
 
 /**
@@ -38,17 +38,17 @@ type NotesDatabaseEntry = {
  * Default note.
  */
 const defaultNote = {
-	title: '',
-	content: '',
-	lastUpdated: Date.now(),
+	content: "",
 	isFrozen: false,
+	lastUpdated: Date.now(),
+	title: "",
 };
 
 /**
  * Dexie database schema.
  */
 type Database = {
-	notes: EntityTable<NotesDatabaseEntry, 'id'>;
+	notes: EntityTable<NotesDatabaseEntry, "id">;
 };
 
 /**
@@ -62,7 +62,7 @@ type Note = v.InferOutput<typeof databaseSchema>;
  * the realms of overengineering. We don't want the `id` and `lastUpdated` to be updated since
  * we can only have one note.
  */
-type UpdateNotes = Partial<Omit<NotesDatabaseEntry, 'id' | 'lastUpdated'>>;
+type UpdateNotes = Partial<Omit<NotesDatabaseEntry, "id" | "lastUpdated">>;
 
 /**
  * Special `Dexie` type for Indexed DB.
@@ -72,13 +72,13 @@ type IndexedDatabase = Dexie & Database;
 /**
  * Instantiate a Dexie client on module load.
  */
-const database = new Dexie('speednote') as IndexedDatabase;
+const database = new Dexie("speednote") as IndexedDatabase;
 
 /**
  * Use the initial database schema.
  */
 database.version(1).stores({
-	notes: 'id, title, content, lastUpdated, frozen',
+	notes: "id, title, content, lastUpdated, frozen",
 });
 
 /**

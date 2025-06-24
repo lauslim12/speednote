@@ -1,7 +1,7 @@
-import { type ReactNode, useId } from 'react';
-import { useSharedNote } from '~/editor/use-shared-note';
-import { Input } from '~/input';
-import { Link } from '~/link';
+import { type ReactNode, useId } from "react";
+import { useSharedNote } from "~/editor/use-shared-note";
+import { Input } from "~/input";
+import { Link } from "~/link";
 
 type SharedNoteProps = {
 	title: string;
@@ -24,23 +24,23 @@ export const SharedNote = ({ title, content }: SharedNoteProps) => {
 		<section>
 			<section>
 				<Input
-					id={titleId}
 					aria-label="Note title"
-					type="title"
+					id={titleId}
 					placeholder={title}
-					value={decodeURIComponent(title)}
 					readOnly
+					type="title"
+					value={decodeURIComponent(title)}
 				/>
 			</section>
 
 			<section>
 				<Input
-					id={contentId}
 					aria-label="Note content"
-					type="content"
+					id={contentId}
 					placeholder={content}
-					value={decodeURIComponent(content)}
 					readOnly
+					type="content"
+					value={decodeURIComponent(content)}
 				/>
 			</section>
 
@@ -60,7 +60,7 @@ export const SharedNoteLoader = ({ children }: { children: ReactNode }) => {
 	const sharedNote = useSharedNote();
 
 	if (sharedNote.isShared) {
-		return <SharedNote title={sharedNote.title} content={sharedNote.content} />;
+		return <SharedNote content={sharedNote.content} title={sharedNote.title} />;
 	}
 
 	return children;

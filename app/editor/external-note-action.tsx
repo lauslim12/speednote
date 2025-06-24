@@ -1,6 +1,6 @@
-import { toast } from 'sonner';
-import { Button } from '~/button';
-import { NoteStore } from './store';
+import { toast } from "sonner";
+import { Button } from "~/button";
+import { NoteStore } from "~/editor/store";
 
 type ExternalNoteActionProps = {
 	onSave: () => void;
@@ -24,12 +24,12 @@ export const ExternalNoteAction = ({ onSave }: ExternalNoteActionProps) => {
 		// that exist outside of the Latin1 range.
 		// Reference: https://github.com/lauslim12/speednote/issues/36.
 		const newSearchParams = new URLSearchParams();
-		if (title !== '') {
-			newSearchParams.set('title', window.btoa(encodeURIComponent(title)));
+		if (title !== "") {
+			newSearchParams.set("title", window.btoa(encodeURIComponent(title)));
 		}
 
-		if (content !== '') {
-			newSearchParams.set('content', window.btoa(encodeURIComponent(content)));
+		if (content !== "") {
+			newSearchParams.set("content", window.btoa(encodeURIComponent(content)));
 		}
 
 		// Copy the URL the user's clipboard. I know that the `writeText` is supposed
@@ -38,7 +38,7 @@ export const ExternalNoteAction = ({ onSave }: ExternalNoteActionProps) => {
 		// to just not put `await` in front of the function call.
 		const url = `${window.location.href}?${newSearchParams.toString()}`;
 		navigator.clipboard.writeText(url);
-		toast.success('Shared note URL has been copied to clipboard.');
+		toast.success("Shared note URL has been copied to clipboard.");
 	};
 
 	return (

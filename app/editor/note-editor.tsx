@@ -1,6 +1,8 @@
-import { Effect } from '@tanstack/react-store';
-import { useEffect } from 'react';
-import { setNotes } from '~/editor/indexed-db';
+import { Effect } from "@tanstack/react-store";
+import { useEffect } from "react";
+import { ExternalNoteAction } from "~/editor/external-note-action";
+import { setNotes } from "~/editor/indexed-db";
+import { InternalNoteAction } from "~/editor/internal-note-action";
 import {
 	NoteStore,
 	SystemStore,
@@ -8,11 +10,9 @@ import {
 	setTitle,
 	useNoteStore,
 	useSystemStore,
-} from '~/editor/store';
-import { useDebounceCallback } from '~/editor/use-debounce';
-import { Input } from '~/input';
-import { ExternalNoteAction } from './external-note-action';
-import { InternalNoteAction } from './internal-note-action';
+} from "~/editor/store";
+import { useDebounceCallback } from "~/editor/use-debounce";
+import { Input } from "~/input";
 
 const Metadata = () => {
 	const lastUpdated = useNoteStore((state) => state.lastUpdated);
@@ -22,24 +22,24 @@ const Metadata = () => {
 	}
 
 	const formattedTimestamp = Intl.DateTimeFormat(undefined, {
-		dateStyle: 'full',
-		timeStyle: 'full',
-		hourCycle: 'h23',
+		dateStyle: "full",
+		hourCycle: "h23",
+		timeStyle: "full",
 	}).format(lastUpdated);
 
 	return (
 		<section>
 			<time
-				role="note"
 				className="font-semibold text-gray-400 text-xs transition-colors duration-300 sm:text-sm dark:text-gray-600"
+				role="note"
 			>
 				Last updated at {formattedTimestamp}.
 			</time>
 
-			{save !== 'idle' && (
+			{save !== "idle" && (
 				<span className="font-semibold text-gray-400 text-xs transition-colors duration-300 before:content-['_'] sm:text-sm dark:text-gray-600">
-					{save === 'saving' && 'Saving...'}
-					{save === 'saved' && 'Saved.'}
+					{save === "saving" && "Saving..."}
+					{save === "saved" && "Saved."}
 				</span>
 			)}
 		</section>
@@ -53,12 +53,12 @@ const TitleEditor = () => {
 	return (
 		<section>
 			<Input
-				type="title"
 				aria-label="Note title"
-				value={title}
-				readOnly={isFrozen}
 				onChange={(e) => setTitle(e.currentTarget.value, Date.now())}
 				placeholder="Enter a title"
+				readOnly={isFrozen}
+				type="title"
+				value={title}
 			/>
 		</section>
 	);
@@ -71,12 +71,12 @@ const ContentEditor = () => {
 	return (
 		<section>
 			<Input
-				type="content"
 				aria-label="Note content"
-				value={content}
-				readOnly={isFrozen}
 				onChange={(e) => setContent(e.currentTarget.value, Date.now())}
 				placeholder="Start writing, your progress will be automatically stored in your machine's local storage"
+				readOnly={isFrozen}
+				type="content"
+				value={content}
 			/>
 		</section>
 	);
@@ -88,7 +88,7 @@ export const NoteEditor = () => {
 	 */
 	const debouncedSave = useDebounceCallback(async () => {
 		await setNotes(NoteStore.state);
-		SystemStore.setState((c) => ({ ...c, save: 'saved' }));
+		SystemStore.setState((c) => ({ ...c, save: "saved" }));
 	}, 100);
 
 	/**
@@ -96,11 +96,11 @@ export const NoteEditor = () => {
 	 * debounce the save on Indexed DB.
 	 */
 	const effect = new Effect({
+		deps: [NoteStore],
 		fn: () => {
-			SystemStore.setState((c) => ({ ...c, save: 'saving' }));
+			SystemStore.setState((c) => ({ ...c, save: "saving" }));
 			debouncedSave.debouncedFn();
 		},
-		deps: [NoteStore],
 	});
 
 	/**

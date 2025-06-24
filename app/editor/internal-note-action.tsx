@@ -1,13 +1,13 @@
-import { useState } from 'react';
-import { toast } from 'sonner';
-import { Button } from '~/button';
+import { useState } from "react";
+import { toast } from "sonner";
+import { Button } from "~/button";
 import {
 	NoteStore,
 	resetContent,
 	setContent,
 	setFrozen,
 	useNoteStore,
-} from './store';
+} from "~/editor/store";
 
 type InternalNoteActionProps = {
 	onSave: () => void;
@@ -21,13 +21,13 @@ type InternalNoteActionProps = {
  */
 export const InternalNoteAction = ({ onSave }: InternalNoteActionProps) => {
 	const isFrozen = useNoteStore((state) => state.isFrozen);
-	const [lastChanges, setLastChanges] = useState('');
+	const [lastChanges, setLastChanges] = useState("");
 
 	const handleClear = () => {
 		setLastChanges(NoteStore.state.content);
 		resetContent(Date.now());
 		onSave();
-		toast.info('Note cleared!');
+		toast.info("Note cleared!");
 	};
 
 	const handleFreezeNote = (nextValue: boolean) => () => {
@@ -35,27 +35,27 @@ export const InternalNoteAction = ({ onSave }: InternalNoteActionProps) => {
 		onSave();
 
 		if (nextValue) {
-			toast.success('Note frozen!');
+			toast.success("Note frozen!");
 		} else {
-			toast.success('Note unfrozen!');
+			toast.success("Note unfrozen!");
 		}
 	};
 
 	const handleUndo = () => {
 		setContent(lastChanges, Date.now());
-		setLastChanges('');
+		setLastChanges("");
 		onSave();
-		toast.success('Restored last state.');
+		toast.success("Restored last state.");
 	};
 
 	return (
 		<section className="flex gap-4">
-			<Button onClick={handleClear} disabled={isFrozen}>
+			<Button disabled={isFrozen} onClick={handleClear}>
 				Clear content
 			</Button>
 
 			<Button onClick={handleFreezeNote(!isFrozen)}>
-				{isFrozen ? 'Unfreeze note' : 'Freeze note'}
+				{isFrozen ? "Unfreeze note" : "Freeze note"}
 			</Button>
 
 			{lastChanges && <Button onClick={handleUndo}>Undo clear</Button>}

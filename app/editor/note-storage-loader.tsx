@@ -1,8 +1,12 @@
-import { batch } from '@tanstack/react-store';
-import { type ReactNode, useEffect } from 'react';
-import { Link } from '~/link';
-import { getNotes } from './indexed-db';
-import { SystemStore, setInitialNoteStore, useSystemStore } from './store';
+import { batch } from "@tanstack/react-store";
+import { type ReactNode, useEffect } from "react";
+import { getNotes } from "~/editor/indexed-db";
+import {
+	SystemStore,
+	setInitialNoteStore,
+	useSystemStore,
+} from "~/editor/store";
+import { Link } from "~/link";
 
 /**
  * Loader to get the note data from Indexed DB.
@@ -17,16 +21,16 @@ export const NoteStorageLoader = ({ children }: { children: ReactNode }) => {
 		getNotes()
 			.then((note) => {
 				batch(() => {
-					SystemStore.setState({ stage: 'loaded', save: 'idle', error: null });
+					SystemStore.setState({ error: null, save: "idle", stage: "loaded" });
 					setInitialNoteStore(note);
 				});
 			})
 			.catch((error) => {
-				SystemStore.setState({ stage: 'error', save: 'idle', error });
+				SystemStore.setState({ error, save: "idle", stage: "error" });
 			});
 	}, []);
 
-	if (stage === 'initializing') {
+	if (stage === "initializing") {
 		return (
 			<div className="flex flex-1 flex-col items-center justify-center gap-2 text-center text-gray-600 dark:text-gray-400">
 				<span>Initializing the flash editor by loading from IndexedDB...</span>
@@ -39,7 +43,7 @@ export const NoteStorageLoader = ({ children }: { children: ReactNode }) => {
 		);
 	}
 
-	if (stage === 'error') {
+	if (stage === "error") {
 		return (
 			<div className="flex flex-1 flex-col items-center justify-center gap-2 text-center text-gray-600 dark:text-gray-400">
 				<p>We encountered an error when loading from the browser's storage.</p>
