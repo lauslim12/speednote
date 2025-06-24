@@ -54,7 +54,7 @@ const TitleEditor = () => {
 		<section>
 			<Input
 				aria-label="Note title"
-				onChange={(e) => setTitle(e.currentTarget.value, Date.now())}
+				onChange={({ currentTarget: { value } }) => setTitle(value, Date.now())}
 				placeholder="Enter a title"
 				readOnly={isFrozen}
 				type="title"
@@ -72,7 +72,9 @@ const ContentEditor = () => {
 		<section>
 			<Input
 				aria-label="Note content"
-				onChange={(e) => setContent(e.currentTarget.value, Date.now())}
+				onChange={({ currentTarget: { value } }) =>
+					setContent(value, Date.now())
+				}
 				placeholder="Start writing, your progress will be automatically stored in your machine's local storage"
 				readOnly={isFrozen}
 				type="content"
@@ -125,7 +127,7 @@ export const NoteEditor = () => {
 	};
 
 	return (
-		<section className="flex flex-col gap-3 p-2">
+		<section className="flex flex-col gap-3 p-1">
 			<Metadata />
 			<TitleEditor />
 			<ContentEditor />
