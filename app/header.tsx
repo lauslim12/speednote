@@ -1,32 +1,18 @@
-import { useState } from "react";
 import { Button } from "~/button";
 import { Link } from "~/link";
+import { useDarkTheme } from "./use-dark-mode";
 
 /**
  * Header of the application.
  */
 export const Header = () => {
-	// Initializer pattern since this state should only be initialized once.
-	const [isDark, setIsDark] = useState(() =>
-		document.documentElement.classList.contains("dark"),
-	);
-
-	const handleThemeToggle = () => {
-		if (isDark) {
-			setIsDark(false);
-			document.documentElement.classList.remove("dark");
-			return;
-		}
-
-		setIsDark(true);
-		document.documentElement.classList.add("dark");
-	};
+	const { isDark, setColorTheme } = useDarkTheme();
 
 	return (
 		<header className="flex justify-end gap-2">
 			<Button
 				aria-label="Color mode switch"
-				onClick={handleThemeToggle}
+				onClick={() => setColorTheme(!isDark)}
 				variant="secondary"
 			>
 				{isDark ? "Lighten" : "Darken"}
