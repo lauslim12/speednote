@@ -7,6 +7,7 @@ import { App } from "~/app";
 
 /**
  * Mock `window.matchMedia` because JSDOM does not implement it.
+ * {@link https://rebeccamdeprey.com/blog/mock-windowmatchmedia-in-vitest}
  */
 vi.hoisted(() => {
 	Object.defineProperty(window, "matchMedia", {
