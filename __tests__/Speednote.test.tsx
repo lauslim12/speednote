@@ -2,7 +2,24 @@ import "fake-indexeddb/auto";
 import "@testing-library/jest-dom/vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { vi } from "vitest";
 import { App } from "~/app";
+
+/**
+ * Mock `window.matchMedia` because JSDOM does not implement it.
+ * {@link https://rebeccamdeprey.com/blog/mock-windowmatchmedia-in-vitest}
+ */
+vi.hoisted(() => {
+	Object.defineProperty(window, "matchMedia", {
+		value: vi.fn().mockImplementation((query) => ({
+			addEventListener: vi.fn(),
+			matches: false,
+			media: query,
+			removeEventListener: vi.fn(),
+		})),
+		writable: true,
+	});
+});
 
 /**
  * Operate on IndexedDB in testing environment. Ensures that the database is
@@ -271,41 +288,38 @@ test.each([
 		inputContent: "这是一张纸条样本。",
 		inputTitle: "你好！",
 	},
-])(
-	"able to copy shared note properly $constraint",
-	async ({
-		inputTitle,
-		inputContent,
-		expectedEncodedTitle,
-		expectedEncodedContent,
-	}) => {
-		// Because it's important to ensure that the title and the content is encoded properly,
-		// I decided to spy on this function to make sure that it doesn't do anything unexpected.
-		const mockWriteText = vi
-			.spyOn(window.navigator.clipboard, "writeText")
-			.mockImplementation(async () => {});
+])("able to copy shared note properly $constraint", async ({
+	inputTitle,
+	inputContent,
+	expectedEncodedTitle,
+	expectedEncodedContent,
+}) => {
+	// Because it's important to ensure that the title and the content is encoded properly,
+	// I decided to spy on this function to make sure that it doesn't do anything unexpected.
+	const mockWriteText = vi
+		.spyOn(window.navigator.clipboard, "writeText")
+		.mockImplementation(async () => {});
 
-		// Render the app with our new browser context.
-		const { user } = renderWithProviders();
+	// Render the app with our new browser context.
+	const { user } = renderWithProviders();
 
-		// Write something on the inputs.
-		const { title, content } = await assertEditor();
-		await user.type(title, inputTitle);
-		expect(title).toHaveValue(inputTitle);
-		await user.type(content, inputContent);
-		expect(content).toHaveValue(inputContent);
+	// Write something on the inputs.
+	const { title, content } = await assertEditor();
+	await user.type(title, inputTitle);
+	expect(title).toHaveValue(inputTitle);
+	await user.type(content, inputContent);
+	expect(content).toHaveValue(inputContent);
 
-		// Click on the `Share note` button.
-		const shareNoteButton = screen.getByRole("button", {
-			name: "Copy/share note link",
-		});
-		await user.click(shareNoteButton);
+	// Click on the `Share note` button.
+	const shareNoteButton = screen.getByRole("button", {
+		name: "Copy/share note link",
+	});
+	await user.click(shareNoteButton);
 
-		const expectedUrl = `${window.location.href}?title=${expectedEncodedTitle}&content=${expectedEncodedContent}`;
-		expect(mockWriteText).toHaveBeenCalledTimes(1);
-		expect(mockWriteText).toHaveBeenCalledWith(expectedUrl);
-	},
-);
+	const expectedUrl = `${window.location.href}?title=${expectedEncodedTitle}&content=${expectedEncodedContent}`;
+	expect(mockWriteText).toHaveBeenCalledTimes(1);
+	expect(mockWriteText).toHaveBeenCalledWith(expectedUrl);
+});
 
 // Note: I'd like to be able to test the navigation back to the `/` path, but
 // JSDOM doesn't support it, so it's ok. At the end, it's tested by Playwright as well,
@@ -382,15 +396,16 @@ test.each([
 		name: "invalid content only",
 		url: "?title=RW5jaGFudGVk&content=123",
 	},
-])(
-	"able to handle various formats of shared note url ($name)",
-	async ({ url, expectedTitle, expectedContent }) => {
-		renderWithProviders(url);
+])("able to handle various formats of shared note url ($name)", async ({
+	url,
+	expectedTitle,
+	expectedContent,
+}) => {
+	renderWithProviders(url);
 
-		const { content, title } = await assertEditor();
-		expect(title).toHaveValue(expectedTitle);
-		expect(content).toHaveValue(expectedContent);
-		expect(title).toHaveAttribute("readOnly");
-		expect(content).toHaveAttribute("readOnly");
-	},
-);
+	const { content, title } = await assertEditor();
+	expect(title).toHaveValue(expectedTitle);
+	expect(content).toHaveValue(expectedContent);
+	expect(title).toHaveAttribute("readOnly");
+	expect(content).toHaveAttribute("readOnly");
+});

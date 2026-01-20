@@ -1,5 +1,5 @@
 {
-	"$schema": "https://biomejs.dev/schemas/2.0.5/schema.json",
+	"$schema": "https://biomejs.dev/schemas/2.3.11/schema.json",
 	"assist": {
 		"actions": {
 			"source": {
@@ -8,6 +8,11 @@
 				"useSortedKeys": "on",
 				"useSortedProperties": "on"
 			}
+		}
+	},
+	"css": {
+		"parser": {
+			"tailwindDirectives": true
 		}
 	},
 	"files": {
@@ -30,13 +35,16 @@
 		}
 	},
 	"linter": {
+		"domains": {
+			"project": "all",
+			"react": "all"
+		},
 		"enabled": true,
 		"rules": {
 			"nursery": {
 				"useSortedClasses": {
 					"fix": "safe",
-					"level": "error",
-					"options": {}
+					"level": "error"
 				}
 			},
 			"recommended": true,

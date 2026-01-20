@@ -30,8 +30,38 @@ export default defineConfig({
 				...devices["Desktop Edge"],
 			},
 		},
+		{
+			name: "Mobile Safari",
+			use: {
+				...devices["iPhone 15"],
+			},
+		},
+		{
+			name: "Mobile Chrome",
+			use: {
+				...devices["Pixel 7"],
+			},
+		},
+		{
+			name: "Desktop Chrome HiDPI",
+			use: {
+				...devices["Desktop Chrome HiDPI"],
+			},
+		},
+		{
+			name: "Desktop Firefox HiDPI",
+			use: {
+				...devices["Desktop Firefox HiDPI"],
+			},
+		},
+		{
+			name: "Desktop Edge HiDPI",
+			use: {
+				...devices["Desktop Edge HiDPI"],
+			},
+		},
 	],
-	reporter: "html",
+	reporter: [["list"], ["html"]],
 	testDir: "e2e",
 	use: {
 		baseURL: PLAYWRIGHT_BASE_URL,

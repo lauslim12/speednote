@@ -1,4 +1,5 @@
 import { Store, useStore } from "@tanstack/react-store";
+import { useEffect } from "react";
 
 /**
  * Color theme store. For now, the store is named dark theme store
@@ -6,7 +7,7 @@ import { Store, useStore } from "@tanstack/react-store";
  * as a state for synchronization if it gets called in other components.
  */
 const DarkThemeStore = new Store(
-	document.documentElement.classList.contains("dark"),
+	window.matchMedia("(prefers-color-scheme: dark)").matches,
 );
 
 /**
@@ -16,16 +17,37 @@ const DarkThemeStore = new Store(
 export const useDarkTheme = () => {
 	const isDark = useStore(DarkThemeStore);
 
-	const setColorTheme = (isDark: boolean) => {
-		DarkThemeStore.setState(isDark);
+	// Sync the theme with system preference.
+	useEffect(() => {
+		const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
 
-		if (isDark) {
-			document.documentElement.classList.add("dark");
-			return;
-		}
+		const handleMediaQueryUpdate = (e: MediaQueryListEvent) => {
+			DarkThemeStore.setState(() => e.matches);
+		};
 
-		document.documentElement.classList.remove("dark");
+		// Listen to changes, and cleanup on unmount.
+		mediaQuery.addEventListener("change", handleMediaQueryUpdate);
+		return () => {
+			mediaQuery.removeEventListener("change", handleMediaQueryUpdate);
+		};
+	}, []);
+
+	useEffect(() => {
+		const unsubscribe = DarkThemeStore.subscribe((value) => {
+			if (value) {
+				document.documentElement.classList.add("dark");
+				return;
+			}
+
+			document.documentElement.classList.remove("dark");
+		});
+
+		return () => unsubscribe();
+	}, []);
+
+	const toggleColorTheme = () => {
+		DarkThemeStore.setState((previous) => !previous);
 	};
 
-	return { isDark, setColorTheme };
+	return { isDark, toggleColorTheme };
 };
