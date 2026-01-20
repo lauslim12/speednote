@@ -6,13 +6,13 @@ import { useDarkTheme } from "~/use-dark-mode";
  * Header of the application.
  */
 export const Header = () => {
-	const { isDark, setColorTheme } = useDarkTheme();
+	const { isDark, toggleColorTheme } = useDarkTheme();
 
 	return (
 		<header className="flex justify-end gap-2">
 			<Button
 				aria-label="Color mode switch"
-				onClick={() => setColorTheme(!isDark)}
+				onClick={() => toggleColorTheme()}
 				variant="secondary"
 			>
 				{isDark ? "Lighten" : "Darken"}
