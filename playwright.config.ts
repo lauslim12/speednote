@@ -42,6 +42,24 @@ export default defineConfig({
 				...devices["Pixel 7"],
 			},
 		},
+		{
+			name: "Desktop Chrome HiDPI",
+			use: {
+				...devices["Desktop Chrome HiDPI"],
+			},
+		},
+		{
+			name: "Desktop Firefox HiDPI",
+			use: {
+				...devices["Desktop Firefox HiDPI"],
+			},
+		},
+		{
+			name: "Desktop Edge HiDPI",
+			use: {
+				...devices["Desktop Edge HiDPI"],
+			},
+		},
 	],
 	reporter: [["list"], ["html"]],
 	testDir: "e2e",
