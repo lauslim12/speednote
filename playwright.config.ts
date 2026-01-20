@@ -30,6 +30,18 @@ export default defineConfig({
 				...devices["Desktop Edge"],
 			},
 		},
+		{
+			name: "Mobile Safari",
+			use: {
+				...devices["iPhone 15"],
+			},
+		},
+		{
+			name: "Mobile Chrome",
+			use: {
+				...devices["Pixel 7"],
+			},
+		},
 	],
 	reporter: [["list"], ["html"]],
 	testDir: "e2e",
