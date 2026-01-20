@@ -31,7 +31,7 @@ export default defineConfig({
 			},
 		},
 	],
-	reporter: "html",
+	reporter: [["list"], ["html"]],
 	testDir: "e2e",
 	use: {
 		baseURL: PLAYWRIGHT_BASE_URL,
