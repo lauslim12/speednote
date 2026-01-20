@@ -222,15 +222,21 @@ test("able to clear content and undo clear", async ({ page }) => {
 	);
 });
 
-test("able to switch color mode", async ({ page }) => {
+test("able to switch color mode and dark mode works", async ({ page }) => {
 	await renderPage(page);
 
 	const { colorModeSwitchButton } = await getAndAssertConfiguration(page);
 	await expect(colorModeSwitchButton).toHaveText("Darken");
 	await colorModeSwitchButton.click();
 
+	// Make sure that the Dark Mode is active.
+	await expect(page.locator("html")).toHaveAttribute("class", "dark");
+
 	await expect(colorModeSwitchButton).toHaveText("Lighten");
 	await colorModeSwitchButton.click();
+
+	// Make sure that the Dark Mode is not active.
+	await expect(page.locator("html")).not.toHaveAttribute("class", "dark");
 
 	await expect(colorModeSwitchButton).toHaveText("Darken");
 });
