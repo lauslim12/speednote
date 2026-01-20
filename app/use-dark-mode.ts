@@ -11,6 +11,22 @@ const DarkThemeStore = new Store(
 );
 
 /**
+ * Subscribe to changes in the dark theme store to ensure only one
+ * listener updates the DOM, regardless of how many components use the hook.
+ */
+DarkThemeStore.subscribe(() => {
+	// Read state directly from the store.
+	const isDark = DarkThemeStore.state;
+
+	if (isDark) {
+		document.documentElement.classList.add("dark");
+		return;
+	}
+
+	document.documentElement.classList.remove("dark");
+});
+
+/**
  * Hook to use the dark theme. May be upgraded to include other
  * themes in the future.
  */
@@ -30,19 +46,6 @@ export const useDarkTheme = () => {
 		return () => {
 			mediaQuery.removeEventListener("change", handleMediaQueryUpdate);
 		};
-	}, []);
-
-	useEffect(() => {
-		const unsubscribe = DarkThemeStore.subscribe((value) => {
-			if (value) {
-				document.documentElement.classList.add("dark");
-				return;
-			}
-
-			document.documentElement.classList.remove("dark");
-		});
-
-		return () => unsubscribe();
 	}, []);
 
 	const toggleColorTheme = () => {
