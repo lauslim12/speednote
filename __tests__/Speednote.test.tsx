@@ -2,7 +2,23 @@ import "fake-indexeddb/auto";
 import "@testing-library/jest-dom/vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { vi } from "vitest";
 import { App } from "~/app";
+
+/**
+ * Mock `window.matchMedia` because JSDOM does not implement it.
+ */
+vi.hoisted(() => {
+	Object.defineProperty(window, "matchMedia", {
+		value: vi.fn().mockImplementation((query) => ({
+			addEventListener: vi.fn(),
+			matches: false,
+			media: query,
+			removeEventListener: vi.fn(),
+		})),
+		writable: true,
+	});
+});
 
 /**
  * Operate on IndexedDB in testing environment. Ensures that the database is
