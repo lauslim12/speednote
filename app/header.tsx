@@ -1,6 +1,6 @@
 import { Button } from "~/button";
 import { Link } from "~/link";
-import { useDarkTheme } from "./use-dark-mode";
+import { useDarkTheme } from "~/use-dark-mode";
 
 /**
  * Header of the application.
