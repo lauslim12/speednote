@@ -1,0 +1,34 @@
+version: 2
+updates:
+  # 1. NPM Dependencies
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      # Run monthly at the 1st day of every month.
+      interval: "monthly"
+      time: "21:00"
+      timezone: "Asia/Tokyo"
+    
+    # Strictly allow only 1 open PR for NPM.
+    open-pull-requests-limit: 1
+
+    groups:
+      monthly-updates:
+        patterns:
+          - "*"
+
+  # 2. GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+      time: "21:00"
+      timezone: "Asia/Tokyo"
+    
+    # Strictly allow only 1 open PR for Actions.
+    open-pull-requests-limit: 1
+    
+    groups:
+      monthly-actions:
+        patterns:
+          - "*"
