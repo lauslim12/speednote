@@ -4,8 +4,7 @@
 	"name": "TypeScript + Node.js",
 	"image": "mcr.microsoft.com/devcontainers/typescript-node",
 	"features": {
-		"ghcr.io/devcontainers/features/git:1": {},
-		"ghcr.io/devcontainers/features/node:1": {}
+		"ghcr.io/devcontainers-extra/features/pnpm:2": {}
 	},
 	"forwardPorts": [3000],
 	"customizations": {
