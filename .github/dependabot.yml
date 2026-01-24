@@ -13,7 +13,7 @@ updates:
     open-pull-requests-limit: 1
 
     groups:
-      monthly-updates:
+      monthly-npm-updates:
         patterns:
           - "*"
 
@@ -30,5 +30,20 @@ updates:
     
     groups:
       monthly-actions:
+        patterns:
+          - "*"
+
+  # 3. GitHub Codespaces
+  - package-ecosystem: "devcontainers"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+      time: "21:00"
+      timezone: "Asia/Tokyo"
+    
+    open-pull-requests-limit: 1
+    
+    groups:
+      monthly-codespaces:
         patterns:
           - "*"
