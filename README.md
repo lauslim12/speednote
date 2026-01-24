@@ -61,6 +61,8 @@ You only need these software packages to run this application:
 - [Node.js](https://nodejs.org/en) according to the [`.node-version`](./.node-version)
 - [PNPM](https://pnpm.io/) according to the version in [`package.json`](./package.json)
 
+You can also run this application in [GitHub Codespaces](https://github.com/features/codespaces).
+
 ## Development
 
 To start development quickly, please follow the steps below:
@@ -80,6 +82,8 @@ pnpm preview
 ```
 
 There are no dependencies (environment variables or the like), this is a standalone project.
+
+As an alternative, you can also run this project in GitHub Codespaces.
 
 ## Tests
 
