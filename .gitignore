@@ -44,6 +44,3 @@ sw.ts
 # playwright
 test-results/
 playwright-report/
-
-# vscode
-.vscode
