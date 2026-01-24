@@ -12,7 +12,7 @@ Honestly, the slowness and the overload of features is starting to get the bette
 
 The concept of this application is just a single note with a title that you could use according to your use-case. You will type whatever you need / have been thinking about in that single note, and you **should move it to other note applications when you have the chance to do so**. This application should only be used for writing a general idea of something on the spot so that you do not forget it. At the moment, there are two terminologies when using Speednote: `title` is the title of the note, and `content` is the content of the note.
 
-The data store that is used by the application is using the [fastest possible data store that could persist values](https://stackoverflow.com/a/56848541/13980107) across browser refreshes. The saving is done by implementing autosaves with debounce to make sure that it does not overload the browser. However, despite its speed, it should be kept in mind that this application **is not supposed to and should not be used for long-term note saving**. It is also recommended to not exceed the browser's IndexedDB size (making notes that are too long). You could check the maximum size of Indexed DB via the [following website](https://rxdb.info/articles/indexeddb-max-storage-limit.html).
+The data store that is used by this application is [IndexedDB](https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API), a robust, structured, and asynchronous database with [objectively fast performance](https://stackoverflow.com/a/22580545). The saving is done by implementing autosaves with debounce to make sure that it does not overload the browser. However, despite its speed, it should be kept in mind that this application **is not supposed to and should not be used for long-term note saving**. It is also recommended to not exceed the browser's IndexedDB size (making notes that are too long). You could check the maximum size of Indexed DB via the [following website](https://rxdb.info/articles/indexeddb-max-storage-limit.html).
 
 ## Features
 
@@ -21,7 +21,7 @@ The data store that is used by the application is using the [fastest possible da
 - Frozen notes. If you are afraid of accidentally deleting your note, just click on `Freeze note` to freeze your notes from changes. You cannot clear your notes if it's frozen, the button will be disabled.
 - Shareable notes. You can share your note to other people by clicking `Copy/share note link` button. It will automatically copy your note-specific link to your clipboard. The format of the shared note is `https://<SPEEDNOTE_URL>/?title=<BASE64_ENCODED_TEXT>&content=<BASE64_ENCODED_TEXT>`. You can just share the `title` or the `content`, and anything else will be ignored if there are unknown query parameters.
 - Complete with autosave function with reasonable debounce, so you don't have to worry about performance hits, lag, and data loss (stored in Indexed DB).
-- The storage that is used, [Indexed DB](https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API), is known to be a robust client-side storage that can store significant amounts of data without blocking the main thread.
+- The storage that is used, IndexedDB, is known to be a robust client-side storage that can store significant amounts of data without blocking the main thread.
 - Versioned with the build date on the footer to know if the user is in the latest version of the application or not.
 - Lightweight. I intentionally did not use any heavy UI-frameworks and decided to just use a normal CSS, augmented with TailwindCSS to make it featherweight.
 - Minimalist. Designed with comfort and minimalism in mind, to ensure that note-taking would be a pleasant experience.
@@ -59,7 +59,7 @@ Note that the comparison was made on **August 26, 2024**.
 You only need these software packages to run this application:
 
 - [Node.js](https://nodejs.org/en) according to the [`.node-version`](./.node-version)
-- [PNPM](https://pnpm.io/)
+- [PNPM](https://pnpm.io/) according to the version in [`package.json`](./package.json)
 
 ## Development
 
