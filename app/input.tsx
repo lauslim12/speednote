@@ -8,7 +8,7 @@ import { cn } from "~/cn";
  * Props for the input component.
  */
 interface InputProps extends TextareaAutosizeProps {
-	type: "title" | "content";
+	type: "title" | "content" | "generic";
 }
 
 /**
