@@ -4,6 +4,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { vi } from "vitest";
 import { App } from "~/app";
+import { generateShareNoteUrl } from "~/editor/generate-share-note-url";
 
 /**
  * Mock `window.matchMedia` because JSDOM does not implement it.
@@ -288,37 +289,103 @@ test.each([
 		inputContent: "这是一张纸条样本。",
 		inputTitle: "你好！",
 	},
-])("able to copy shared note properly $constraint", async ({
+	{
+		constraint: "with special url characters",
+		expectedEncodedContent:
+			"dXNlciU0MGVtYWlsLmNvbSUyMCUyRiUyMElzJTIwdGhpcyUyMGNvcnJlY3QlM0YlMjAlMjYlMjBtb3Jl",
+		expectedEncodedTitle: "USUyMCUyNiUyMEE%3D",
+		inputContent: "user@email.com / Is this correct? & more",
+		inputTitle: "Q & A",
+	},
+	{
+		constraint: "with emojis",
+		expectedEncodedContent:
+			"V29yayUyMGhhcmQhJTIwJUYwJTlGJTkyJUFBJUYwJTlGJTk0JUE1",
+		expectedEncodedTitle: "R29hbHMlMjAlRjAlOUYlOUElODA%3D",
+		inputContent: "Work hard! 💪🔥",
+		inputTitle: "Goals 🚀",
+	},
+	{
+		constraint: "with code characters",
+		expectedEncodedContent: "Y29uc29sZS5sb2coJ0hlbGxvJyklM0I%3D",
+		expectedEncodedTitle: "JTNDc2NyaXB0JTNF",
+		inputContent: "console.log('Hello');",
+		inputTitle: "<script>",
+	},
+	{
+		constraint: "with korean characters (Hangul)",
+		expectedEncodedContent:
+			"JUVDJTk1JTg4JUVCJTg1JTk1JUVEJTk1JTk4JUVDJTg0JUI4JUVDJTlBJTk0",
+		expectedEncodedTitle: "S29yZWE%3D", // "Korea"
+		inputContent: "안녕하세요",
+		inputTitle: "Korea",
+	},
+	{
+		constraint: "with arabic characters (Right-to-Left)",
+		expectedEncodedContent: "JUQ5JTg1JUQ4JUIxJUQ4JUFEJUQ4JUE4JUQ4JUE3",
+		expectedEncodedTitle: "QXJhYmlj",
+		inputContent: "مرحبا",
+		inputTitle: "Arabic",
+	},
+	{
+		constraint: "with european accents (Diacritics)",
+		expectedEncodedContent: "Q2FmJUMzJUE5JTIwJTI2JTIwTmElQzMlQUZ2ZQ%3D%3D",
+		expectedEncodedTitle: "Q3IlQzMlQThtZSUyMEJyJUMzJUJCbCVDMyVBOWU%3D",
+		inputContent: "Café & Naïve",
+		inputTitle: "Crème Brûlée",
+	},
+	{
+		constraint: "with emojis and ZWJ sequences",
+		expectedEncodedContent:
+			"JUYwJTlGJTlBJTgwJUUyJTlDJUE4JUYwJTlGJTkxJUE4JUUyJTgwJThEJUYwJTlGJTkxJUE5JUUyJTgwJThEJUYwJTlGJTkxJUE3JUUyJTgwJThEJUYwJTlGJTkxJUE2",
+		expectedEncodedTitle: "RW1vamk%3D",
+		inputContent: "🚀✨👨‍👩‍👧‍👦",
+		inputTitle: "Emoji",
+	},
+	{
+		constraint: "with URL reserved characters",
+		// Input: "user?name=test&id=123" (Testing if &, ?, = break the query string)
+		expectedEncodedContent: "dXNlciUzRm5hbWUlM0R0ZXN0JTI2aWQlM0QxMjM%3D",
+		expectedEncodedTitle: "VVJM", // "URL"
+		inputContent: "user?name=test&id=123",
+		inputTitle: "URL",
+	},
+	{
+		constraint: "with HTML injection attempt",
+		expectedEncodedContent:
+			"JTNDc2NyaXB0JTNFYWxlcnQoMSklM0MlMkZzY3JpcHQlM0U%3D",
+		expectedEncodedTitle: "WFNT",
+		inputContent: "<script>alert(1)</script>",
+		inputTitle: "XSS",
+	},
+	{
+		constraint: "with special symbols and quotes",
+		expectedEncodedContent: "JTIyJTVDJTJGJTQwJTIzJTI0JTI1JTVFKg%3D%3D",
+		expectedEncodedTitle: "U3ltYm9scw%3D%3D", // "Symbols"
+		inputContent: '"\\/@#$%^*', // input: "\/@#$%^*
+		inputTitle: "Symbols",
+	},
+	{
+		constraint: "with very long strings (stress test)",
+		// A string of 100 'a's.
+		// Logic: 100 'a's -> btoa('aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa')
+		expectedEncodedContent:
+			"YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYQ%3D%3D",
+		expectedEncodedTitle: "TG9uZw%3D%3D", // Long
+		inputContent: "a".repeat(100),
+		inputTitle: "Long",
+	},
+])("able to get the share note in the proper format $constraint", async ({
 	inputTitle,
 	inputContent,
 	expectedEncodedTitle,
 	expectedEncodedContent,
 }) => {
-	// Because it's important to ensure that the title and the content is encoded properly,
-	// I decided to spy on this function to make sure that it doesn't do anything unexpected.
-	const mockWriteText = vi
-		.spyOn(window.navigator.clipboard, "writeText")
-		.mockImplementation(async () => {});
+	const url = generateShareNoteUrl(inputTitle, inputContent);
 
-	// Render the app with our new browser context.
-	const { user } = renderWithProviders();
-
-	// Write something on the inputs.
-	const { title, content } = await assertEditor();
-	await user.type(title, inputTitle);
-	expect(title).toHaveValue(inputTitle);
-	await user.type(content, inputContent);
-	expect(content).toHaveValue(inputContent);
-
-	// Click on the `Share note` button.
-	const shareNoteButton = screen.getByRole("button", {
-		name: "Copy/share note link",
-	});
-	await user.click(shareNoteButton);
-
-	const expectedUrl = `${window.location.href}?title=${expectedEncodedTitle}&content=${expectedEncodedContent}`;
-	expect(mockWriteText).toHaveBeenCalledTimes(1);
-	expect(mockWriteText).toHaveBeenCalledWith(expectedUrl);
+	expect(url).toStrictEqual(
+		`${window.location.href}?title=${expectedEncodedTitle}&content=${expectedEncodedContent}`,
+	);
 });
 
 // Note: I'd like to be able to test the navigation back to the `/` path, but
