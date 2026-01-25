@@ -10,7 +10,7 @@ import {
 } from "~/editor/store";
 
 type InternalNoteActionProps = {
-	onSave: () => void;
+	onSave: () => Promise<void>;
 };
 
 /**
@@ -23,16 +23,16 @@ export const InternalNoteAction = ({ onSave }: InternalNoteActionProps) => {
 	const isFrozen = useNoteStore((state) => state.isFrozen);
 	const [lastChanges, setLastChanges] = useState("");
 
-	const handleClear = () => {
+	const handleClear = async () => {
 		setLastChanges(NoteStore.state.content);
 		resetContent(Date.now());
-		onSave();
+		await onSave();
 		toast.info("Note cleared!");
 	};
 
-	const handleFreezeNote = (nextValue: boolean) => () => {
+	const handleFreezeNote = async (nextValue: boolean) => {
 		setFrozen(nextValue);
-		onSave();
+		await onSave();
 
 		if (nextValue) {
 			toast.success("Note frozen!");
@@ -41,10 +41,10 @@ export const InternalNoteAction = ({ onSave }: InternalNoteActionProps) => {
 		}
 	};
 
-	const handleUndo = () => {
+	const handleUndo = async () => {
 		setContent(lastChanges, Date.now());
 		setLastChanges("");
-		onSave();
+		await onSave();
 		toast.success("Restored last state.");
 	};
 
@@ -54,7 +54,7 @@ export const InternalNoteAction = ({ onSave }: InternalNoteActionProps) => {
 				Clear content
 			</Button>
 
-			<Button onClick={handleFreezeNote(!isFrozen)}>
+			<Button onClick={() => handleFreezeNote(!isFrozen)}>
 				{isFrozen ? "Unfreeze note" : "Freeze note"}
 			</Button>
 
