@@ -1,4 +1,4 @@
-import { chromium, expect, type Page, test } from "@playwright/test";
+import { expect, type Page, test } from "@playwright/test";
 
 const getAndAssertEditor = async (page: Page) => {
 	const [title, content, undoClearButton] = [
@@ -40,6 +40,7 @@ const renderPage = async (page: Page, route?: string) => {
 declare global {
 	interface Window {
 		getDataFromIndexedDB: () => Promise<string>;
+		clipboardWrite: (text: string) => void;
 	}
 }
 
@@ -326,6 +327,92 @@ const copyAndSeeSharedNoteTestCases = [
 		inputContent: "这是一张纸条样本。",
 		inputTitle: "你好！",
 	},
+	{
+		constraint: "with special url characters",
+		expectedEncodedContent:
+			"dXNlciU0MGVtYWlsLmNvbSUyMCUyRiUyMElzJTIwdGhpcyUyMGNvcnJlY3QlM0YlMjAlMjYlMjBtb3Jl",
+		expectedEncodedTitle: "USUyMCUyNiUyMEE%3D",
+		inputContent: "user@email.com / Is this correct? & more",
+		inputTitle: "Q & A",
+	},
+	{
+		constraint: "with emojis",
+		expectedEncodedContent:
+			"V29yayUyMGhhcmQhJTIwJUYwJTlGJTkyJUFBJUYwJTlGJTk0JUE1",
+		expectedEncodedTitle: "R29hbHMlMjAlRjAlOUYlOUElODA%3D",
+		inputContent: "Work hard! 💪🔥",
+		inputTitle: "Goals 🚀",
+	},
+	{
+		constraint: "with code characters",
+		expectedEncodedContent: "Y29uc29sZS5sb2coJ0hlbGxvJyklM0I%3D",
+		expectedEncodedTitle: "JTNDc2NyaXB0JTNF",
+		inputContent: "console.log('Hello');",
+		inputTitle: "<script>",
+	},
+	{
+		constraint: "with korean characters (Hangul)",
+		expectedEncodedContent:
+			"JUVDJTk1JTg4JUVCJTg1JTk1JUVEJTk1JTk4JUVDJTg0JUI4JUVDJTlBJTk0",
+		expectedEncodedTitle: "S29yZWE%3D", // "Korea"
+		inputContent: "안녕하세요",
+		inputTitle: "Korea",
+	},
+	{
+		constraint: "with arabic characters (Right-to-Left)",
+		expectedEncodedContent: "JUQ5JTg1JUQ4JUIxJUQ4JUFEJUQ4JUE4JUQ4JUE3",
+		expectedEncodedTitle: "QXJhYmlj",
+		inputContent: "مرحبا",
+		inputTitle: "Arabic",
+	},
+	{
+		constraint: "with european accents (Diacritics)",
+		expectedEncodedContent: "Q2FmJUMzJUE5JTIwJTI2JTIwTmElQzMlQUZ2ZQ%3D%3D",
+		expectedEncodedTitle: "Q3IlQzMlQThtZSUyMEJyJUMzJUJCbCVDMyVBOWU%3D",
+		inputContent: "Café & Naïve",
+		inputTitle: "Crème Brûlée",
+	},
+	{
+		constraint: "with emojis and ZWJ sequences",
+		expectedEncodedContent:
+			"JUYwJTlGJTlBJTgwJUUyJTlDJUE4JUYwJTlGJTkxJUE4JUUyJTgwJThEJUYwJTlGJTkxJUE5JUUyJTgwJThEJUYwJTlGJTkxJUE3JUUyJTgwJThEJUYwJTlGJTkxJUE2",
+		expectedEncodedTitle: "RW1vamk%3D",
+		inputContent: "🚀✨👨‍👩‍👧‍👦",
+		inputTitle: "Emoji",
+	},
+	{
+		constraint: "with URL reserved characters",
+		// Input: "user?name=test&id=123" (Testing if &, ?, = break the query string)
+		expectedEncodedContent: "dXNlciUzRm5hbWUlM0R0ZXN0JTI2aWQlM0QxMjM%3D",
+		expectedEncodedTitle: "VVJM", // "URL"
+		inputContent: "user?name=test&id=123",
+		inputTitle: "URL",
+	},
+	{
+		constraint: "with HTML injection attempt",
+		expectedEncodedContent:
+			"JTNDc2NyaXB0JTNFYWxlcnQoMSklM0MlMkZzY3JpcHQlM0U%3D",
+		expectedEncodedTitle: "WFNT",
+		inputContent: "<script>alert(1)</script>",
+		inputTitle: "XSS",
+	},
+	{
+		constraint: "with special symbols and quotes",
+		expectedEncodedContent: "JTIyJTVDJTJGJTQwJTIzJTI0JTI1JTVFKg%3D%3D",
+		expectedEncodedTitle: "U3ltYm9scw%3D%3D", // "Symbols"
+		inputContent: '"\\/@#$%^*', // input: "\/@#$%^*
+		inputTitle: "Symbols",
+	},
+	{
+		constraint: "with very long strings (stress test)",
+		// A string of 100 'a's.
+		// Logic: 100 'a's -> btoa('aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa')
+		expectedEncodedContent:
+			"YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYQ%3D%3D",
+		expectedEncodedTitle: "TG9uZw%3D%3D", // Long
+		inputContent: "a".repeat(100),
+		inputTitle: "Long",
+	},
 ];
 
 for (const {
@@ -335,14 +422,10 @@ for (const {
 	expectedEncodedTitle,
 	expectedEncodedContent,
 } of copyAndSeeSharedNoteTestCases) {
-	test(`able to copy and see a shared note properly ${constraint}`, async () => {
-		// We need to use a new browser context to allow permission to write to clipboard in the headless Playwright test.
-		const browser = await chromium.launch();
-		const context = await browser.newContext({
-			permissions: ["clipboard-write", "clipboard-read"],
-		});
-		const page = await context.newPage();
-
+	test(`able to copy and see a shared note properly ${constraint}`, async ({
+		page,
+		context,
+	}) => {
 		// Render the app with our new browser context.
 		await renderPage(page);
 
@@ -359,15 +442,19 @@ for (const {
 		const shareNoteButton = page.getByRole("button", { name: "Share note" });
 		await shareNoteButton.click();
 
-		// Slightly testing implementation details, make sure that the shared URL is correct. We don't
-		// care about the leading parts, we just want to make sure that the URL query params are correct.
-		const clipboardText = await page.evaluate("navigator.clipboard.readText()");
-		const expectedUrl = `?title=${expectedEncodedTitle}&content=${expectedEncodedContent}`;
-		expect(clipboardText).toContain(expectedUrl);
+		// The `Copied URL` should be here, and then we just make sure that it's correct.
+		const expectedQuery = `?title=${expectedEncodedTitle}&content=${expectedEncodedContent}`;
+		const copiedUrl = page.getByRole("textbox", { name: "Copied URL" });
+		const displayedUrl = await copiedUrl.inputValue();
+		expect(displayedUrl).toContain(expectedQuery);
 
 		// Summon a new page based on the copied URL query parameters.
 		const newPage = await context.newPage();
-		await renderPage(newPage, clipboardText as string);
+		await renderPage(newPage, displayedUrl);
+
+		// Slightly testing implementation details, make sure that the shared URL is correct. We don't
+		// think about the leading parts, we just want to make sure that the URL query params are correct.
+		expect(newPage.url()).toContain(expectedQuery);
 
 		const { title: newTitle, content: newContent } =
 			await getAndAssertEditor(newPage);
@@ -432,10 +519,6 @@ for (const {
 		await expect(
 			newPage.getByRole("button", { name: "Share note" }),
 		).toBeVisible();
-
-		// Close all sessions.
-		await context.close();
-		await browser.close();
 	});
 }
 
