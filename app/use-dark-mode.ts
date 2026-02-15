@@ -59,10 +59,10 @@ export const useDarkTheme = () => {
 	useEffect(() => {
 		const handleKeyboardShortcut = (e: KeyboardEvent) => {
 			if (
-				e.metaKey &&
-				e.key === "d" &&
-				!(e.currentTarget instanceof HTMLTextAreaElement) &&
-				!(e.currentTarget instanceof HTMLInputElement)
+				(e.metaKey || e.ctrlKey) &&
+				e.key.toLowerCase() === "d" &&
+				!(e.target instanceof HTMLTextAreaElement) &&
+				!(e.target instanceof HTMLInputElement)
 			) {
 				e.preventDefault();
 				DarkThemeStore.setState((previous) => !previous);
