@@ -242,6 +242,25 @@ test("able to switch color mode and dark mode works", async ({ page }) => {
 	await expect(colorModeSwitchButton).toHaveText("Darken");
 });
 
+test("able to switch color mode with keyboard shortcuts", async ({ page }) => {
+	await renderPage(page);
+
+	// Initially, the page should be in light mode.
+	await expect(page.locator("html")).not.toHaveAttribute("class", "dark");
+
+	// Switch to Dark Mode.
+	await page.keyboard.press("ControlOrMeta+D");
+
+	// Make sure that the Dark Mode is active.
+	await expect(page.locator("html")).toHaveAttribute("class", "dark");
+
+	// Switch to Light Mode.
+	await page.keyboard.press("ControlOrMeta+D");
+
+	// Make sure that the Dark Mode is not active.
+	await expect(page.locator("html")).not.toHaveAttribute("class", "dark");
+});
+
 test("able to freeze notes and unfreeze them", async ({ page }) => {
 	await renderPage(page);
 

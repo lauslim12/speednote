@@ -7,6 +7,13 @@ export default defineConfig({
 	fullyParallel: true,
 	projects: [
 		{
+			name: "Desktop Chromium",
+			use: {
+				...devices["Desktop Chrome"],
+				channel: "chromium",
+			},
+		},
+		{
 			name: "Desktop Chrome",
 			use: {
 				...devices["Desktop Chrome"],
@@ -28,6 +35,20 @@ export default defineConfig({
 			name: "Desktop Edge",
 			use: {
 				...devices["Desktop Edge"],
+			},
+		},
+		{
+			name: "Google Chrome",
+			use: {
+				...devices["Desktop Chrome"],
+				channel: "chrome",
+			},
+		},
+		{
+			name: "Microsoft Edge",
+			use: {
+				...devices["Desktop Edge"],
+				channel: "msedge",
 			},
 		},
 		{

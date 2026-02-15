@@ -34,7 +34,6 @@ jobs:
         run: pnpm build
 
   e2e:
-    timeout-minutes: 60
     runs-on: ubuntu-latest
 
     steps:
@@ -55,6 +54,11 @@ jobs:
 
       - name: Install Playwright browsers
         run: pnpm exec playwright install --with-deps
+
+      - name: Install Playwright branded browsers
+        run: |
+          pnpm exec playwright install chrome
+          pnpm exec playwright install msedge
 
       - name: Run Playwright tests
         run: pnpm e2e-ci
