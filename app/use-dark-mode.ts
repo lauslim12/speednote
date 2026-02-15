@@ -48,12 +48,23 @@ export const useDarkTheme = () => {
 		};
 	}, []);
 
-	// Listen to keyboard shortcuts.
+	// Register a global keyboard shortcut (⌘ + D) to toggle dark mode.
+	//
+	// Important:
+	// - We only call `preventDefault()` when the exact shortcut is pressed.
+	// - We explicitly avoid triggering this while the user is typing inside
+	// an <input> or <textarea>, so normal text editing is never interrupted.
+	// - This prevents accidental blocking of default key behavior, which can
+	// break typing and test simulations (e.g. userEvent.type in testing).
 	useEffect(() => {
 		const handleKeyboardShortcut = (e: KeyboardEvent) => {
-			e.preventDefault();
-
-			if (e.metaKey && e.key === "d") {
+			if (
+				e.metaKey &&
+				e.key === "d" &&
+				!(e.currentTarget instanceof HTMLTextAreaElement) &&
+				!(e.currentTarget instanceof HTMLInputElement)
+			) {
+				e.preventDefault();
 				DarkThemeStore.setState((previous) => !previous);
 			}
 		};
