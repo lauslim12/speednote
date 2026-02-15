@@ -48,6 +48,22 @@ export const useDarkTheme = () => {
 		};
 	}, []);
 
+	// Listen to keyboard shortcuts.
+	useEffect(() => {
+		const handleKeyboardShortcut = (e: KeyboardEvent) => {
+			e.preventDefault();
+
+			if (e.metaKey && e.key === "d") {
+				DarkThemeStore.setState((previous) => !previous);
+			}
+		};
+
+		window.addEventListener("keydown", handleKeyboardShortcut);
+		return () => {
+			window.removeEventListener("keydown", handleKeyboardShortcut);
+		};
+	}, []);
+
 	const toggleColorTheme = () => {
 		DarkThemeStore.setState((previous) => !previous);
 	};
