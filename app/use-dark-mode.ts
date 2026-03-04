@@ -1,4 +1,4 @@
-import { Store, useStore } from "@tanstack/react-store";
+import { createStore, useStore } from "@tanstack/react-store";
 import { useEffect } from "react";
 
 /**
@@ -6,7 +6,7 @@ import { useEffect } from "react";
  * since it's the only thing being stored right now. This is not made
  * as a state for synchronization if it gets called in other components.
  */
-const DarkThemeStore = new Store(
+const DarkThemeStore = createStore(
 	window.matchMedia("(prefers-color-scheme: dark)").matches,
 );
 
@@ -31,7 +31,7 @@ DarkThemeStore.subscribe(() => {
  * themes in the future.
  */
 export const useDarkTheme = () => {
-	const isDark = useStore(DarkThemeStore);
+	const isDark = useStore(DarkThemeStore, (isDark) => isDark);
 
 	// Sync the theme with system preference.
 	useEffect(() => {

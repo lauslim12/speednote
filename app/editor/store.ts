@@ -1,4 +1,4 @@
-import { Store, useStore } from "@tanstack/react-store";
+import { createStore, useStore } from "@tanstack/react-store";
 
 /**
  * Type definition for the `NoteStore` state.
@@ -34,7 +34,7 @@ type SystemStore = {
  *
  * @package
  */
-export const SystemStore = new Store<SystemStore>({
+export const SystemStore = createStore<SystemStore>({
 	error: null,
 	save: "idle",
 	stage: "initializing",
@@ -57,7 +57,7 @@ export const useSystemStore = <T>(selector: (state: SystemStore) => T): T => {
  *
  * @package
  */
-export const NoteStore = new Store<NoteStore>({
+export const NoteStore = createStore<NoteStore>({
 	content: "",
 	isFrozen: false,
 	lastUpdated: Date.now(),
@@ -111,7 +111,7 @@ export const resetContent = (lastUpdated: number) => {
  * @package
  */
 export const setInitialNoteStore = (note: NoteStore) => {
-	NoteStore.setState(note);
+	NoteStore.setState(() => note);
 };
 
 /**

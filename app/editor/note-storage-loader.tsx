@@ -21,12 +21,16 @@ export const NoteStorageLoader = ({ children }: { children: ReactNode }) => {
 		getNotes()
 			.then((note) => {
 				batch(() => {
-					SystemStore.setState({ error: null, save: "idle", stage: "loaded" });
+					SystemStore.setState(() => ({
+						error: null,
+						save: "idle",
+						stage: "loaded",
+					}));
 					setInitialNoteStore(note);
 				});
 			})
 			.catch((error) => {
-				SystemStore.setState({ error, save: "idle", stage: "error" });
+				SystemStore.setState(() => ({ error, save: "idle", stage: "error" }));
 			});
 	}, []);
 

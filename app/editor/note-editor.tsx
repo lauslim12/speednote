@@ -1,4 +1,3 @@
-import { Effect } from "@tanstack/react-store";
 import { useEffect } from "react";
 import { ExternalNoteAction } from "~/editor/external-note-action";
 import { setNotes } from "~/editor/indexed-db";
@@ -97,20 +96,15 @@ export const NoteEditor = () => {
 	 * Listen to store changes. If the note changes we want to be able to
 	 * debounce the save on Indexed DB.
 	 */
-	const effect = new Effect({
-		deps: [NoteStore],
-		fn: () => {
-			SystemStore.setState((c) => ({ ...c, save: "saving" }));
-			debouncedSave.debouncedFn();
-		},
+	const { unsubscribe } = NoteStore.subscribe(() => {
+		SystemStore.setState((c) => ({ ...c, save: "saving" }));
+		debouncedSave.debouncedFn();
 	});
 
 	/**
 	 * Mount effect on load.
 	 */
 	useEffect(() => {
-		const unmount = effect.mount();
-
 		/**
 		 * On app unmount, ensure that we unsubscribe everything, and we try
 		 * on a best-effort basis to invoke the debounced save function on Indexed DB. It is
@@ -118,9 +112,9 @@ export const NoteEditor = () => {
 		 */
 		return () => {
 			debouncedSave.flush();
-			unmount();
+			unsubscribe();
 		};
-	}, [effect.mount, debouncedSave.flush]);
+	}, [unsubscribe, debouncedSave.flush]);
 
 	const handleSave = async () => {
 		await debouncedSave.flush();
