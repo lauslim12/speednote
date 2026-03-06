@@ -8,7 +8,7 @@ export const App = () => (
 	<div className="mx-auto flex min-h-screen max-w-7xl flex-col p-5">
 		<Header />
 
-		<main className="flex grow flex-col px-0 py-8 sm:px-2 md:px-6 lg:px-12 xl:px-20">
+		<main className="flex flex-1 flex-col px-0 py-8 sm:px-2 md:px-6 lg:px-12 xl:px-20">
 			<Editor />
 		</main>
 
