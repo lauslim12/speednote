@@ -99,28 +99,58 @@ export const NoteEditor = () => {
 	 */
 	const effect = new Effect({
 		deps: [NoteStore],
+		eager: false,
 		fn: () => {
 			SystemStore.setState((c) => ({ ...c, save: "saving" }));
 			debouncedSave.debouncedFn();
 		},
 	});
+	const unmount = effect.mount();
 
 	/**
 	 * Mount effect on load.
 	 */
 	useEffect(() => {
-		const unmount = effect.mount();
-
 		/**
-		 * On app unmount, ensure that we unsubscribe everything, and we try
-		 * on a best-effort basis to invoke the debounced save function on Indexed DB. It is
-		 * almost not possible to run asychronous functions on cleanup.
+		 * If the user switched tabs, minimized the browser, or closed the page,
+		 * immediately save and unmount the effect.
 		 */
-		return () => {
+		const handleVisibilityChange = () => {
+			if (document.visibilityState === "visible") {
+				return;
+			}
+
 			debouncedSave.flush();
 			unmount();
 		};
-	}, [effect.mount, debouncedSave.flush]);
+
+		/**
+		 * If the user is using an old browser, we handle the tab close with another function
+		 * that does the same thing as the above.
+		 */
+		const handlePageHide = () => {
+			debouncedSave.flush();
+			unmount();
+		};
+
+		/**
+		 * Listen for visibility changes.
+		 */
+		document.addEventListener("visibilitychange", handleVisibilityChange);
+
+		/**
+		 * Listen for page hide, as the fallback.
+		 */
+		window.addEventListener("pagehide", handlePageHide);
+
+		/**
+		 * On app unmount, remove all of the event listeners.
+		 */
+		return () => {
+			document.removeEventListener("visibilitychange", handleVisibilityChange);
+			window.removeEventListener("pagehide", handlePageHide);
+		};
+	}, [unmount, debouncedSave.flush]);
 
 	const handleSave = async () => {
 		await debouncedSave.flush();
