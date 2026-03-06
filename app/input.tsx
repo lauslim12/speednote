@@ -20,7 +20,7 @@ export const Input = ({ type, className, ...props }: InputProps) => {
 	return (
 		<TextareaAutosize
 			className={cn(
-				"w-full resize-none border-none py-2 outline-hidden",
+				"w-full resize-none overflow-hidden border-none py-2 outline-hidden",
 				"placeholder:text-stone-400 dark:placeholder:text-stone-600",
 				"placeholder:transition-colors placeholder:duration-300 placeholder:ease-in-out",
 				"read-only:text-stone-500 dark:read-only:text-stone-400",
