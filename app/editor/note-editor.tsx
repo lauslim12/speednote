@@ -109,12 +109,12 @@ export const NoteEditor = () => {
 		 * If the user switched tabs, minimized the browser, or closed the page,
 		 * immediately save and unmount the effect.
 		 */
-		const handleVisibilityChange = () => {
+		const handleVisibilityChange = async () => {
 			if (document.visibilityState === "visible") {
 				return;
 			}
 
-			debouncedSave.flush();
+			await debouncedSave.flush();
 			unsubscribe();
 		};
 
@@ -122,8 +122,8 @@ export const NoteEditor = () => {
 		 * If the user is using an old browser, we handle the tab close with another function
 		 * that does the same thing as the above.
 		 */
-		const handlePageHide = () => {
-			debouncedSave.flush();
+		const handlePageHide = async () => {
+			await debouncedSave.flush();
 			unsubscribe();
 		};
 
