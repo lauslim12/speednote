@@ -1,4 +1,3 @@
-import { Effect } from "@tanstack/react-store";
 import { useEffect } from "react";
 import { ExternalNoteAction } from "~/editor/external-note-action";
 import { setNotes } from "~/editor/indexed-db";
@@ -97,15 +96,10 @@ export const NoteEditor = () => {
 	 * Listen to store changes. If the note changes we want to be able to
 	 * debounce the save on Indexed DB.
 	 */
-	const effect = new Effect({
-		deps: [NoteStore],
-		eager: false,
-		fn: () => {
-			SystemStore.setState((c) => ({ ...c, save: "saving" }));
-			debouncedSave.debouncedFn();
-		},
+	const { unsubscribe } = NoteStore.subscribe(() => {
+		SystemStore.setState((c) => ({ ...c, save: "saving" }));
+		debouncedSave.debouncedFn();
 	});
-	const unmount = effect.mount();
 
 	/**
 	 * Mount effect on load.
@@ -115,22 +109,22 @@ export const NoteEditor = () => {
 		 * If the user switched tabs, minimized the browser, or closed the page,
 		 * immediately save and unmount the effect.
 		 */
-		const handleVisibilityChange = () => {
+		const handleVisibilityChange = async () => {
 			if (document.visibilityState === "visible") {
 				return;
 			}
 
-			debouncedSave.flush();
-			unmount();
+			await debouncedSave.flush();
+			unsubscribe();
 		};
 
 		/**
 		 * If the user is using an old browser, we handle the tab close with another function
 		 * that does the same thing as the above.
 		 */
-		const handlePageHide = () => {
-			debouncedSave.flush();
-			unmount();
+		const handlePageHide = async () => {
+			await debouncedSave.flush();
+			unsubscribe();
 		};
 
 		/**
@@ -150,7 +144,7 @@ export const NoteEditor = () => {
 			document.removeEventListener("visibilitychange", handleVisibilityChange);
 			window.removeEventListener("pagehide", handlePageHide);
 		};
-	}, [unmount, debouncedSave.flush]);
+	}, [unsubscribe, debouncedSave.flush]);
 
 	const handleSave = async () => {
 		await debouncedSave.flush();
