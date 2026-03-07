@@ -26,7 +26,8 @@ export const App = () => (
 		<footer className="mt-auto text-center text-gray-500 text-xs transition-colors duration-300 dark:text-gray-600">
 			<p>Thank you so much for using Speednote! Made with ♥ in Tokyo, Japan</p>
 			<p className="mt-1.5 text-[0.5rem] opacity-60">
-				{import.meta.env.VITE_APP_VERSION}
+				{import.meta.env.VITE_APP_VERSION} (
+				{import.meta.env.VITE_GIT_SHORT_SHA ?? "local"})
 			</p>
 		</footer>
 	</div>
