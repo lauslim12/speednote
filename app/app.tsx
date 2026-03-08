@@ -16,7 +16,7 @@ import { Header } from "~/header";
  * bypassing the optimization glitch.
  */
 export const App = () => (
-	<div className="mx-auto flex min-h-screen max-w-7xl flex-col bg-gray-50 p-5 dark:bg-gray-950">
+	<div className="mx-auto flex min-h-screen max-w-7xl flex-col bg-gray-50 p-5 transition-colors duration-300 dark:bg-gray-950">
 		<Header />
 
 		<main className="flex flex-1 flex-col px-0 py-8 sm:px-2 md:px-6 lg:px-12 xl:px-20">

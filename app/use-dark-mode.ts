@@ -14,10 +14,7 @@ const DarkThemeStore = createStore(
  * Subscribe to changes in the dark theme store to ensure only one
  * listener updates the DOM, regardless of how many components use the hook.
  */
-DarkThemeStore.subscribe(() => {
-	// Read state directly from the store.
-	const isDark = DarkThemeStore.state;
-
+DarkThemeStore.subscribe((isDark) => {
 	if (isDark) {
 		document.documentElement.classList.add("dark");
 		return;
