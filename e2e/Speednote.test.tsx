@@ -621,6 +621,50 @@ test("able to handle unused query parameters", async ({ page }) => {
 	await expect(content).toBeEditable();
 });
 
+test("able to restore autosave after hiding the app", async ({ page }) => {
+	// Render the app with our new browser context.
+	await renderPage(page);
+
+	// Write something on the inputs.
+	const { title, content } = await getAndAssertEditor(page);
+	await title.fill("Autosave Test Title");
+	await content.fill("Autosave Test Content");
+
+	// Force page visibility.
+	await page.evaluate(() => {
+		Object.defineProperty(document, "visibilityState", {
+			configurable: true,
+			value: "hidden",
+		});
+
+		document.dispatchEvent(new Event("visibilitychange"));
+	});
+
+	// Verify that the state is still `Saved.`
+	await expect(page.getByRole("status")).toContainText("Saved.");
+
+	// Make the page visible again, and then try again.
+	await page.evaluate(() => {
+		Object.defineProperty(document, "visibilityState", {
+			configurable: true,
+			value: "visible",
+		});
+
+		document.dispatchEvent(new Event("visibilitychange"));
+	});
+
+	// Fill it out again, and then check if the Autosave still works.
+	await title.fill("Autosave");
+	await content.fill("Autosave");
+	await expect(page.getByRole("status")).toContainText("Saving...");
+	await expect(page.getByRole("status")).toContainText("Saved.");
+
+	// Reload the page.
+	await page.reload();
+	await expect(title).toHaveValue("Autosave");
+	await expect(content).toHaveValue("Autosave");
+});
+
 // // 404 pages are only testable in integration environments as it's a server-side page.
 // test('able to view and recover from 404 not found', async ({ page }) => {
 // 	await renderPage(page, '/404');

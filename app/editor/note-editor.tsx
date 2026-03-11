@@ -36,10 +36,10 @@ const Metadata = () => {
 			</time>
 
 			{save !== "idle" && (
-				<span className="font-semibold text-gray-400 text-xs transition-colors duration-300 before:content-['_'] sm:text-sm dark:text-gray-600">
+				<output className="font-semibold text-gray-400 text-xs transition-colors duration-300 before:content-['_'] sm:text-sm dark:text-gray-600">
 					{save === "saving" && "Saving..."}
 					{save === "saved" && "Saved."}
-				</span>
+				</output>
 			)}
 		</section>
 	);
@@ -93,18 +93,19 @@ export const NoteEditor = () => {
 	}, 100);
 
 	/**
-	 * Listen to store changes. If the note changes we want to be able to
-	 * debounce the save on Indexed DB.
-	 */
-	const { unsubscribe } = NoteStore.subscribe(() => {
-		SystemStore.setState((c) => ({ ...c, save: "saving" }));
-		debouncedSave.debouncedFn();
-	});
-
-	/**
 	 * Mount effect on load.
 	 */
 	useEffect(() => {
+		/**
+		 * Listen to store changes. If the note changes we want to be able to
+		 * debounce the save on Indexed DB. This store is only mounted once during the
+		 * application's lifecycle.
+		 */
+		const { unsubscribe } = NoteStore.subscribe(() => {
+			SystemStore.setState((c) => ({ ...c, save: "saving" }));
+			debouncedSave.debouncedFn();
+		});
+
 		/**
 		 * If the user switched tabs, minimized the browser, or closed the page,
 		 * immediately save and unmount the effect.
@@ -115,7 +116,6 @@ export const NoteEditor = () => {
 			}
 
 			await debouncedSave.flush();
-			unsubscribe();
 		};
 
 		/**
@@ -124,7 +124,6 @@ export const NoteEditor = () => {
 		 */
 		const handlePageHide = async () => {
 			await debouncedSave.flush();
-			unsubscribe();
 		};
 
 		/**
@@ -141,10 +140,11 @@ export const NoteEditor = () => {
 		 * On app unmount, remove all of the event listeners.
 		 */
 		return () => {
+			unsubscribe();
 			document.removeEventListener("visibilitychange", handleVisibilityChange);
 			window.removeEventListener("pagehide", handlePageHide);
 		};
-	}, [unsubscribe, debouncedSave.flush]);
+	}, [debouncedSave]);
 
 	const handleSave = async () => {
 		await debouncedSave.flush();
