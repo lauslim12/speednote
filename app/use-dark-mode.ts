@@ -7,7 +7,7 @@ import { useEffect } from "react";
  * as a state for synchronization if it gets called in other components.
  */
 const DarkThemeStore = createStore(
-	window.matchMedia("(prefers-color-scheme: dark)").matches,
+	document.documentElement.classList.contains("dark"),
 );
 
 /**
