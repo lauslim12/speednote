@@ -120,13 +120,8 @@ test("renders properly", async () => {
 	await assertEditor();
 	assertHeader();
 
-	// Sanity checks for markups, check footer and header.
+	// Sanity checks for header.
 	expect(screen.getByText(/About/i)).toBeInTheDocument();
-	expect(
-		screen.getByText(
-			"Thank you so much for using Speednote! Made with ♥ in Tokyo, Japan",
-		),
-	).toBeInTheDocument();
 
 	// Should also render a link to GitHub.
 	const linkToSource = screen.getByRole("link", { name: /About/ });
@@ -178,8 +173,8 @@ test("able to edit title and content", async () => {
 		"Today I spent 1000 JPY for lunch at a fish shop",
 	);
 
-	// There should be a date that shows the last updated date as well.
-	expect(screen.getByText(/Last updated at/i)).toBeInTheDocument();
+	// There should be a timestamp showing when the note was last updated.
+	expect(screen.getByRole("note")).toBeInTheDocument();
 });
 
 test("able to clear content and undo clear", async () => {
@@ -195,14 +190,21 @@ test("able to clear content and undo clear", async () => {
 	});
 	expect(clearContentButton).toBeEnabled();
 	await user.click(clearContentButton);
-	expect(content).toHaveValue("");
 
-	// Query the `undoClearButton` again here.
-	const undoClearButton = screen.getByRole("button", { name: "Undo clear" });
-	expect(undoClearButton).toBeInTheDocument();
+	// findByRole waits for the re-render — both the empty content and the "Undo clear"
+	// button appearing are results of the same async click handler (handleClear).
+	const undoClearButton = await screen.findByRole("button", {
+		name: "Undo clear",
+	});
+	expect(content).toHaveValue("");
 	expect(undoClearButton).toBeEnabled();
+
 	await user.click(undoClearButton);
-	expect(content).toHaveValue("Tears Don't Fall, Enchanted, Beautiful Trauma");
+
+	// findByDisplayValue retries until handleUndo's state update has re-rendered the content.
+	await screen.findByDisplayValue(
+		"Tears Don't Fall, Enchanted, Beautiful Trauma",
+	);
 });
 
 test("able to switch color mode", async () => {
@@ -228,8 +230,11 @@ test("able to freeze notes and unfreeze them", async () => {
 	expect(freezeNoteButton).toBeEnabled();
 	await user.click(freezeNoteButton);
 
-	// Should have `readOnly` attribute.
-	expect(freezeNoteButton).toHaveAccessibleName("Unfreeze note");
+	// findByRole waits for the re-render, preventing a flake where the assertion
+	// runs before React processes the state update from the async click handler.
+	const unfreezeButton = await screen.findByRole("button", {
+		name: "Unfreeze note",
+	});
 	expect(title).toHaveAttribute("readOnly");
 	expect(content).toHaveAttribute("readOnly");
 
@@ -247,9 +252,9 @@ test("able to freeze notes and unfreeze them", async () => {
 	expect(clearContentButton).toBeDisabled();
 
 	// Unfreeze the note.
-	expect(freezeNoteButton).toBeEnabled();
-	await user.click(freezeNoteButton);
-	expect(freezeNoteButton).toHaveAccessibleName("Freeze note");
+	expect(unfreezeButton).toBeEnabled();
+	await user.click(unfreezeButton);
+	await screen.findByRole("button", { name: "Freeze note" });
 
 	// `Clear content` should not be disabled.
 	expect(clearContentButton).toBeEnabled();

@@ -24,11 +24,18 @@ DarkThemeStore.subscribe((isDark) => {
 });
 
 /**
+ * Lightweight hook that only reads the dark theme state.
+ * Does not register any effects — safe to call from multiple components
+ * without duplicating listeners.
+ */
+export const useIsDark = () => useStore(DarkThemeStore, (state) => state);
+
+/**
  * Hook to use the dark theme. May be upgraded to include other
  * themes in the future.
  */
 export const useDarkTheme = () => {
-	const isDark = useStore(DarkThemeStore, (isDark) => isDark);
+	const isDark = useIsDark();
 
 	// Sync the theme with system preference.
 	useEffect(() => {

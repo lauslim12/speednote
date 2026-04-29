@@ -21,26 +21,19 @@ const Metadata = () => {
 	}
 
 	const formattedTimestamp = Intl.DateTimeFormat(undefined, {
-		dateStyle: "full",
+		dateStyle: "long",
 		hourCycle: "h23",
-		timeStyle: "full",
+		timeStyle: "medium",
 	}).format(lastUpdated);
 
 	return (
 		<section>
 			<time
-				className="font-semibold text-gray-400 text-xs transition-colors duration-300 sm:text-sm dark:text-gray-600"
+				className="text-gray-400 text-xs transition-colors duration-300 sm:text-sm dark:text-gray-600"
 				role="note"
 			>
-				Last updated at {formattedTimestamp}.
+				{save === "saving" ? "Saving..." : formattedTimestamp}
 			</time>
-
-			{save !== "idle" && (
-				<output className="font-semibold text-gray-400 text-xs transition-colors duration-300 before:content-['_'] sm:text-sm dark:text-gray-600">
-					{save === "saving" && "Saving..."}
-					{save === "saved" && "Saved."}
-				</output>
-			)}
 		</section>
 	);
 };
@@ -74,7 +67,7 @@ const ContentEditor = () => {
 				onChange={({ currentTarget: { value } }) =>
 					setContent(value, Date.now())
 				}
-				placeholder="Start writing, your progress will be automatically stored in your machine's local storage"
+				placeholder="Start writing. Progress saves automatically."
 				readOnly={isFrozen}
 				type="content"
 				value={content}
