@@ -1,8 +1,8 @@
 import { Toaster } from "sonner";
-import { useDarkTheme } from "./use-dark-mode.ts";
+import { useIsDark } from "./use-dark-mode.ts";
 
 export const ThemedToaster = () => {
-	const { isDark } = useDarkTheme();
+	const isDark = useIsDark();
 
 	return (
 		<Toaster
