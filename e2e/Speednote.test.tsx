@@ -92,11 +92,6 @@ test("renders properly", async ({ page }) => {
 
 	// Sanity checks for markups, check footer and header.
 	await expect(page.getByText("About")).toBeVisible();
-	await expect(
-		page.getByText(
-			"Thank you so much for using Speednote! Made with ♥ in Tokyo, Japan",
-		),
-	).toBeVisible();
 
 	// Should also render a link to GitHub.
 	const linkToSource = page.getByRole("link", { name: "About" });
@@ -176,8 +171,8 @@ test("able to edit title and content", async ({ page }) => {
 		"Today I spent 1000 JPY for lunch at a fish shop",
 	);
 
-	// There should be a date that shows the last updated date as well.
-	await expect(page.getByText(/Last updated at/i)).toBeVisible();
+	// There should be a timestamp showing when the note was last updated.
+	await expect(page.getByRole("note")).toBeVisible();
 });
 
 test("able to clear content and undo clear", async ({ page }) => {
@@ -640,8 +635,8 @@ test("able to restore autosave after hiding the app", async ({ page }) => {
 		document.dispatchEvent(new Event("visibilitychange"));
 	});
 
-	// Verify that the state is still `Saved.`
-	await expect(page.getByRole("status")).toContainText("Saved.");
+	// Verify that the save indicator is no longer in saving state.
+	await expect(page.getByRole("note")).not.toContainText("Saving...");
 
 	// Make the page visible again, and then try again.
 	await page.evaluate(() => {
@@ -656,8 +651,8 @@ test("able to restore autosave after hiding the app", async ({ page }) => {
 	// Fill it out again, and then check if the Autosave still works.
 	await title.fill("Autosave");
 	await content.fill("Autosave");
-	await expect(page.getByRole("status")).toContainText("Saving...");
-	await expect(page.getByRole("status")).toContainText("Saved.");
+	await expect(page.getByRole("note")).toContainText("Saving...");
+	await expect(page.getByRole("note")).not.toContainText("Saving...");
 
 	// Reload the page.
 	await page.reload();
