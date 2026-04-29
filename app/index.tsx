@@ -1,9 +1,9 @@
-import "@fontsource-variable/inter";
+import "@fontsource-variable/inter/wght.css";
 
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import { Toaster } from "sonner";
 import { App } from "~/app";
+import { ThemedToaster } from "~/toaster";
 
 const root = document.getElementById("root");
 if (!root) {
@@ -12,15 +12,7 @@ if (!root) {
 
 createRoot(root).render(
 	<StrictMode>
-		<Toaster
-			closeButton
-			position="bottom-right"
-			toastOptions={{
-				className:
-					"bg-stone-50 dark:bg-stone-900 border-stone-200 dark:border-stone-800 text-stone-900 dark:text-stone-100",
-				duration: 2000,
-			}}
-		/>
+		<ThemedToaster />
 		<App />
 	</StrictMode>,
 );
