@@ -24,7 +24,7 @@ export default defineConfig({
 			devOptions: {
 				enabled: true,
 			},
-			filename: "sw.ts",
+			filename: "sw.js",
 			manifest: {
 				background_color: "#f1c40f",
 				description: "Speednote, the fastest way to put your quick thoughts!",
