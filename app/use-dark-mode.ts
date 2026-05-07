@@ -1,4 +1,4 @@
-import { createStore, useStore } from "@tanstack/react-store";
+import { createStore, useSelector } from "@tanstack/react-store";
 import { useEffect } from "react";
 
 /**
@@ -28,7 +28,7 @@ DarkThemeStore.subscribe((isDark) => {
  * Does not register any effects — safe to call from multiple components
  * without duplicating listeners.
  */
-export const useIsDark = () => useStore(DarkThemeStore, (state) => state);
+export const useIsDark = () => useSelector(DarkThemeStore, (state) => state);
 
 /**
  * Hook to use the dark theme. May be upgraded to include other
