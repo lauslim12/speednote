@@ -1,4 +1,4 @@
-import { createStore, useStore } from "@tanstack/react-store";
+import { createStore, useSelector } from "@tanstack/react-store";
 
 /**
  * Type definition for the `NoteStore` state.
@@ -49,7 +49,7 @@ export const SystemStore = createStore<SystemStore>({
  * @package
  */
 export const useSystemStore = <T>(selector: (state: SystemStore) => T): T => {
-	return useStore(SystemStore, selector);
+	return useSelector(SystemStore, selector);
 };
 
 /**
@@ -123,5 +123,5 @@ export const setInitialNoteStore = (note: NoteStore) => {
  * @package
  */
 export const useNoteStore = <T>(selector: (state: NoteStore) => T): T => {
-	return useStore(NoteStore, selector);
+	return useSelector(NoteStore, selector);
 };
