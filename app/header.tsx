@@ -12,7 +12,7 @@ export const Header = () => {
 		<header className="flex justify-end gap-2">
 			<Button
 				aria-label="Color mode switch"
-				onClick={() => toggleColorTheme()}
+				onClick={toggleColorTheme}
 				variant="secondary"
 			>
 				{isDark ? "Lighten" : "Darken"}
