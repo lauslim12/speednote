@@ -6,6 +6,8 @@
         "source.organizeImports.biome": "explicit"
     },
     "files.autoSave": "off",
+    "js/ts.experimental.useTsgo": true,
+    "js/ts.tsdk.path": "./node_modules/typescript",
     "workbench.colorTheme": "GitHub Light Default",
     "[markdown]": {
         "editor.defaultFormatter": "DavidAnson.vscode-markdownlint"

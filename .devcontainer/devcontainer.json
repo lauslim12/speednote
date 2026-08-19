@@ -14,7 +14,8 @@
 				"biomejs.biome",
 				"bradlc.vscode-tailwindcss",
 				"davidanson.vscode-markdownlint",
-				"naumovs.color-highlight"
+				"naumovs.color-highlight",
+				"typescriptteam.native-preview"
 			]
 		}
 	},
