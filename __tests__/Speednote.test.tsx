@@ -380,18 +380,21 @@ test.each([
 		inputContent: "a".repeat(100),
 		inputTitle: "Long",
 	},
-])("able to get the share note in the proper format $constraint", async ({
-	inputTitle,
-	inputContent,
-	expectedEncodedTitle,
-	expectedEncodedContent,
-}) => {
-	const url = generateShareNoteUrl(inputTitle, inputContent);
+])(
+	"able to get the share note in the proper format $constraint",
+	async ({
+		inputTitle,
+		inputContent,
+		expectedEncodedTitle,
+		expectedEncodedContent,
+	}) => {
+		const url = generateShareNoteUrl(inputTitle, inputContent);
 
-	expect(url).toStrictEqual(
-		`${window.location.href}?title=${expectedEncodedTitle}&content=${expectedEncodedContent}`,
-	);
-});
+		expect(url).toStrictEqual(
+			`${window.location.href}?title=${expectedEncodedTitle}&content=${expectedEncodedContent}`,
+		);
+	},
+);
 
 // Note: I'd like to be able to test the navigation back to the `/` path, but
 // JSDOM doesn't support it, so it's ok. At the end, it's tested by Playwright as well,
@@ -468,16 +471,15 @@ test.each([
 		name: "invalid content only",
 		url: "?title=RW5jaGFudGVk&content=123",
 	},
-])("able to handle various formats of shared note url ($name)", async ({
-	url,
-	expectedTitle,
-	expectedContent,
-}) => {
-	renderWithProviders(url);
+])(
+	"able to handle various formats of shared note url ($name)",
+	async ({ url, expectedTitle, expectedContent }) => {
+		renderWithProviders(url);
 
-	const { content, title } = await assertEditor();
-	expect(title).toHaveValue(expectedTitle);
-	expect(content).toHaveValue(expectedContent);
-	expect(title).toHaveAttribute("readOnly");
-	expect(content).toHaveAttribute("readOnly");
-});
+		const { content, title } = await assertEditor();
+		expect(title).toHaveValue(expectedTitle);
+		expect(content).toHaveValue(expectedContent);
+		expect(title).toHaveAttribute("readOnly");
+		expect(content).toHaveAttribute("readOnly");
+	},
+);
