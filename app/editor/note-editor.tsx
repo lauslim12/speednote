@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { type ChangeEventHandler, useEffect } from "react";
 import { ExternalNoteAction } from "~/editor/external-note-action";
 import { setNotes } from "~/editor/indexed-db";
 import { InternalNoteAction } from "~/editor/internal-note-action";
@@ -42,11 +42,18 @@ const TitleEditor = () => {
 	const title = useNoteStore((state) => state.title);
 	const isFrozen = useNoteStore((state) => state.isFrozen);
 
+	const handleTitleChange: ChangeEventHandler<
+		HTMLTextAreaElement,
+		HTMLTextAreaElement
+	> = ({ currentTarget: { value } }) => {
+		setTitle(value, Date.now());
+	};
+
 	return (
 		<section>
 			<Input
 				aria-label="Note title"
-				onChange={({ currentTarget: { value } }) => setTitle(value, Date.now())}
+				onChange={handleTitleChange}
 				placeholder="Enter a title"
 				readOnly={isFrozen}
 				type="title"
@@ -60,13 +67,18 @@ const ContentEditor = () => {
 	const content = useNoteStore((state) => state.content);
 	const isFrozen = useNoteStore((state) => state.isFrozen);
 
+	const handleContentChange: ChangeEventHandler<
+		HTMLTextAreaElement,
+		HTMLTextAreaElement
+	> = ({ currentTarget: { value } }) => {
+		setContent(value, Date.now());
+	};
+
 	return (
 		<section>
 			<Input
 				aria-label="Note content"
-				onChange={({ currentTarget: { value } }) =>
-					setContent(value, Date.now())
-				}
+				onChange={handleContentChange}
 				placeholder="Start writing. Progress saves automatically."
 				readOnly={isFrozen}
 				type="content"

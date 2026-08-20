@@ -30,7 +30,7 @@ export const InternalNoteAction = ({ onSave }: InternalNoteActionProps) => {
 		toast.info("Note cleared!");
 	};
 
-	const handleFreezeNote = async (nextValue: boolean) => {
+	const handleFreezeNote = (nextValue: boolean) => async () => {
 		setFrozen(nextValue);
 		await onSave();
 
@@ -54,7 +54,7 @@ export const InternalNoteAction = ({ onSave }: InternalNoteActionProps) => {
 				Clear content
 			</Button>
 
-			<Button onClick={() => handleFreezeNote(!isFrozen)}>
+			<Button onClick={handleFreezeNote(!isFrozen)}>
 				{isFrozen ? "Unfreeze note" : "Freeze note"}
 			</Button>
 

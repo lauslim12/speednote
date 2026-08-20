@@ -1,4 +1,4 @@
-import { useId, useState } from "react";
+import { type MouseEventHandler, useId, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "~/button";
 import { NoteStore } from "~/editor/store";
@@ -23,6 +23,10 @@ export const ExternalNoteAction = ({ onSave }: ExternalNoteActionProps) => {
 	const inputId = useId();
 	const labelId = useId();
 	const [generatedUrl, setGeneratedUrl] = useState("");
+
+	const handleSelectURL: MouseEventHandler<HTMLTextAreaElement> = (e) => {
+		e.currentTarget.select();
+	};
 
 	const handleShareNote = async () => {
 		// Save the note initially, so that we're sure that the changes are committed.
@@ -64,7 +68,7 @@ export const ExternalNoteAction = ({ onSave }: ExternalNoteActionProps) => {
 							aria-labelledby={labelId}
 							className="text-[0.5rem]"
 							id={inputId}
-							onClick={({ currentTarget }) => currentTarget.select()}
+							onClick={handleSelectURL}
 							readOnly
 							type="generic"
 							value={generatedUrl}
