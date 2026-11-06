@@ -29,7 +29,7 @@ const Metadata = () => {
 	return (
 		<section>
 			<time
-				className="text-gray-400 text-xs transition-colors duration-300 sm:text-sm dark:text-gray-600"
+				className="text-xs text-gray-400 transition-colors duration-300 sm:text-sm dark:text-gray-600"
 				role="note"
 			>
 				{save === "saving" ? "Saving..." : formattedTimestamp}
