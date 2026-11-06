@@ -17,7 +17,7 @@ const variantClass = {
 	primary: cn(
 		"border-b border-current",
 		"text-red-500 hover:text-red-600",
-		"dark:text-red-400 dark:hover-text-red-300",
+		"dark:text-red-400 dark:hover:text-red-300",
 		"disabled:text-orange-500 disabled:dark:text-orange-400",
 		"transition-colors duration-200",
 	),

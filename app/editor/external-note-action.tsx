@@ -57,7 +57,7 @@ export const ExternalNoteAction = ({ onSave }: ExternalNoteActionProps) => {
 				{generatedUrl && (
 					<div className="flex w-full flex-col">
 						<label
-							className="text-gray-500 text-xs transition-colors duration-300 dark:text-gray-600"
+							className="text-xs text-gray-500 transition-colors duration-300 dark:text-gray-600"
 							htmlFor={inputId}
 							id={labelId}
 						>
